@@ -1336,7 +1336,7 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const userFirstName = msg.from.first_name;
   
-  bot.sendMessage(chatId, `Hey <b>${userFirstName}</b> 👋 , use the command <b>/about </b> to get infos, or <b> /enpc </b> to get started.`, { parse_mode: "HTML" });
+  bot.sendMessage(chatId, `Hey <b>${userFirstName}</b> 👋 , use the command <b>/about </b> to get infos, or <b> /ing </b> to get started.`, { parse_mode: "HTML" });
 
 
 });
@@ -1423,7 +1423,7 @@ bot.onText(/\/feedback (.+)/, (msg, match) => {
       bot.sendMessage(msg.chat.id, "An error occurred while sending your feedback. Please try again later.");
     });
 });
-bot.onText(/\/enpc/, (msg) => {
+bot.onText(/\/ing/, (msg) => {
   const chatId = msg.chat.id;
   const userFirstName = msg.from.first_name;
 
