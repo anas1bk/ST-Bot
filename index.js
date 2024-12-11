@@ -211,7 +211,7 @@ const moduleData = {
         ]},
     "Analyse 3": {
       "files": [
-        "./cour/Analyse 3/Chapter 1 Multiple integrals.pdf",
+        "./cour/Analyse 3/Cours Analyse 3.pdf",
         "./cour/Analyse 3/chapter 2 part 1.pdf",
         "./cour/Analyse 3/chapter 2 part 2.pdf",
         "./cour/Analyse 3/Table.pdf",
