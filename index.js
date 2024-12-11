@@ -1,7 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const keepAlive = require(`./server.js`);
-const token = 'Token';
+const token = '7938100914:AAEkuXNm5ATXpRKzxVkygXFwB17n8x5I_XM';
 const bot = new TelegramBot(token, { polling: true });
 keepAlive();
 
@@ -1358,7 +1358,7 @@ bot.onText(/\/send/, (msg) => {
       const userid = msg.from.id;
 
       const userMessage = `File send by ${senderFirstName} ${senderLastName} (@${senderUsername}) ID: (@${userid}):\n\n${FileName}`;
-      const channelChatId = '-1002123295195';
+      const channelChatId = '-1002467183466';
       bot.sendDocument(channelChatId, fileId, {
         caption: userMessage,
         parse_mode: 'Markdown',
@@ -1412,7 +1412,7 @@ bot.onText(/\/feedback (.+)/, (msg, match) => {
   const userid = msg.from.id;
 
   const feedbackMessage = `Feedback from ${senderFirstName} ${senderLastName} (@${senderUsername}) Id : (${userid}) :\n\n${userFeedback}`;
-  const yourChatId = '-1001872039250';
+  const yourChatId = '-1002466094952';
   
   bot.sendMessage(yourChatId, feedbackMessage)
     .then(() => {
@@ -1579,7 +1579,7 @@ bot.on('message', (msg) => {
   const userId = msg.from.id;
 
 
-  if ((msg.from.username === 'mohammedkeina') && messageText === '/reply') {
+  if ((msg.from.username === 'anassbkk') && messageText === '/reply') {
 
     bot.sendMessage(chatId, 'Please enter the user ID:');
     userStates[userId] = { step: 1, userId: null, username: null, feedback: null };
