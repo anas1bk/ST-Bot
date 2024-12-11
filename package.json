@@ -1,0 +1,27 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actuallydan/chatgpt": "^1.4.4",
+    "@types/node": "^18.0.6",
+    "axios": "^1.5.0",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "gpt-tag": "^1.0.2",
+    "node-fetch": "^3.2.6",
+    "node-telegram-bot-api": "^0.61.0",
+    "openai": "^4.4.0",
+    "ping-monitor": "^0.8.1",
+    "telegraf": "^4.13.1",
+    "telegram-bot-api": "^2.0.1"
+  },
+  "description": ""
+}
