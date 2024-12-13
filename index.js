@@ -225,7 +225,7 @@ const moduleData = {
     "Analyse numérique": {
       "files": [
         "./cour/Analyse numérique/ANUNUM S3.pdf",
-        "./cour/Analyse numérique/Equation non linéaires(Partie1).pdf",
+        "./cour/Analyse numérique/ANALYSE NUMERIQUE 1 (1).pdf",
         "./cour/Analyse numérique/Présentation du module d'analyse numérique.pdf"
       ],
 
