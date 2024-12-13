@@ -214,8 +214,8 @@ const moduleData = {
         "./cour/Analyse 3/Cours Analyse 3.pdf",
         "./cour/Analyse 3/chapter 2 part 1.pdf",
         "./cour/Analyse 3/chapter 2 part 2.pdf",
-        "./cour/Analyse 3/Table.pdf",
-        "./cour/Analyse 3/Cours Analyse 3.pdf"
+        "./cour/Analyse 3/Table.pdf"
+  
       ],
       "urls": [
         ""
