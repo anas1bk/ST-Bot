@@ -571,7 +571,7 @@ const moduleData = {
 
     "MDF": {
       "files": [
-        "./td/MDF/TD 1 - Mecanique des Fluides CP.pdf",
+        "./td/MDF/tdndeg1_mdf.pdf",
         "./td/MDF/TD 2 - Mecanique des Fluides CP.pdf",
         "./td/MDF/TD 3 - Mecanique des Fluides CP.pdf",
         "./td/MDF/TD 4 - Mecanique des Fluides CP.pdf",
