@@ -557,11 +557,11 @@ const moduleData = {
 
     "MR": {
       "files": [
-        "./td/MR/Td 1 Outils mathematiques.pdf",
-        "./td/MR/td 2  Statique.pdf",
-        "./td/MR/TD1 MR (2022-2023).pdf",
-        "./td/MR/TD 2 MR1 ( 2022-2023).pdf",
-        "./td/MR/TD 3 MR (2022-2023).pdf",
+        "./td/MR/TD 1.pdf",
+        "./td/MR/TD 2.pdf",
+        "./td/MR/TD 3.pdf",
+        "./td/MR/TD 4.pdf",
+        "./td/MR/TD 5.pdf",
         "./td/MR/TD 4 MR 1 ( 2022-2023).pdf"
 
       ],
