@@ -1,5 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
-const { semesterData, resourceTypes, resourceEmojis, botConfig } = require('./config');
+const fs = require('fs');
+const path = require('path');
+const { semesterData, resourceTypes, resourceEmojis, botConfig, fileMapping } = require('./config');
 
 // Initialize bot with token from config
 const bot = new TelegramBot(botConfig.token, { 
@@ -86,6 +88,51 @@ function formatMessage(template, replacements) {
     message = message.replace(`{${key}}`, value);
   }
   return message;
+}
+
+// Helper function to check if file exists
+function fileExists(filePath) {
+  try {
+    return fs.existsSync(filePath);
+  } catch (error) {
+    console.error(`Error checking file existence: ${error}`);
+    return false;
+  }
+}
+
+// Helper function to get files for a specific resource type
+function getFilesForResource(semesterKey, moduleName, resourceType) {
+  try {
+    const semesterFiles = fileMapping[semesterKey];
+    if (!semesterFiles) return null;
+    
+    const moduleFiles = semesterFiles[moduleName];
+    if (!moduleFiles) return null;
+    
+    const resourceFiles = moduleFiles[resourceType];
+    if (!resourceFiles) return null;
+    
+    // Filter out files that don't exist
+    return resourceFiles.filter(file => fileExists(file.path));
+  } catch (error) {
+    console.error(`Error getting files for resource: ${error}`);
+    return null;
+  }
+}
+
+// Helper function to create file selection keyboard
+function createFileSelectionKeyboard(files, semesterKey, moduleIndex, resourceType) {
+  const buttons = files.map((file, index) => ({
+    text: `${file.name}`,
+    callback_data: `file_${semesterKey}_${moduleIndex}_${resourceType}_${index}`
+  }));
+  
+  const backButton = {
+    text: botConfig.buttons.backToResourceTypes,
+    callback_data: `mod_${semesterKey}_${moduleIndex}`
+  };
+  
+  return createInlineKeyboard(buttons, backButton);
 }
 
 // Command handler for /ing
@@ -389,24 +436,45 @@ bot.on('callback_query', async (query) => {
       const emoji = resourceEmojis[resourceType] || '📄';
       const resourceName = resourceType.charAt(0).toUpperCase() + resourceType.slice(1).replace('_', ' ');
       
-      const message = formatMessage(botConfig.messages.resourceComingSoon, {
-        emoji,
-        resourceName,
-        moduleName
-      });
+      // Check if files are available for this resource type
+      const files = getFilesForResource(semesterKey, moduleName, resourceType);
       
-      await bot.editMessageText(message, {
-        chat_id: chatId,
-        message_id: query.message.message_id,
-        reply_markup: {
-          inline_keyboard: [[
-            {
-              text: botConfig.buttons.backToResourceTypes,
-              callback_data: `mod_${semesterKey}_${moduleIndex}`
-            }
-          ]]
-        }
-      });
+      if (files && files.length > 0) {
+        // Files are available - show file selection
+        const message = formatMessage(botConfig.messages.filesAvailable, {
+          emoji,
+          resourceName,
+          moduleName
+        });
+        
+        const keyboard = createFileSelectionKeyboard(files, semesterKey, moduleIndex, resourceType);
+        
+        await bot.editMessageText(message, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: keyboard
+        });
+      } else {
+        // No files available - show coming soon message
+        const message = formatMessage(botConfig.messages.noFilesAvailable, {
+          emoji,
+          resourceName,
+          moduleName
+        });
+        
+        await bot.editMessageText(message, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: {
+            inline_keyboard: [[
+              {
+                text: botConfig.buttons.backToResourceTypes,
+                callback_data: `mod_${semesterKey}_${moduleIndex}`
+              }
+            ]]
+          }
+        });
+      }
       
     } else if (data === 'back_to_semesters') {
       // Back to semesters
@@ -422,6 +490,41 @@ bot.on('callback_query', async (query) => {
         message_id: query.message.message_id,
         reply_markup: keyboard
       });
+      
+    } else if (data.startsWith('file_')) {
+      // File selection - send the actual file
+      const parts = data.split('_');
+      if (parts.length < 6) {
+        throw new Error(`Invalid file callback data: ${data}`);
+      }
+      
+      const semesterKey = `${parts[1]}_${parts[2]}`; // semester_3
+      const moduleIndex = parseInt(parts[3]);
+      const resourceType = parts[4];
+      const fileIndex = parseInt(parts[5]);
+      
+      const moduleName = semesterData[semesterKey].modules[moduleIndex];
+      const files = getFilesForResource(semesterKey, moduleName, resourceType);
+      
+      if (!files || !files[fileIndex]) {
+        throw new Error(`File not found: ${data}`);
+      }
+      
+      const file = files[fileIndex];
+      
+      try {
+        // Send the file
+        await bot.sendDocument(chatId, file.path, {
+          caption: `${file.name}\n\n${file.description || 'No description available'}`
+        });
+        
+        // Send a success message
+        await bot.sendMessage(chatId, `✅ File "${file.name}" sent successfully!`);
+        
+      } catch (error) {
+        console.error('Error sending file:', error);
+        await bot.sendMessage(chatId, `❌ Error sending file "${file.name}". Please try again later.`);
+      }
       
     } else if (data.startsWith('back_to_modules_')) {
       // Back to modules
