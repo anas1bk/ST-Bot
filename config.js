@@ -193,20 +193,20 @@ const botConfig = {
     error: '❌ An error occurred. Please try again.',
     help: `🤖 Engineering Bot Help
 
-Commands:
-/ing - Start the bot and select semester
-/help - Show this help message
+الأوامر:
+/ing  تشغيل البوت واختيار الفصل الدراسي
+/help  عرض رسالة المساعدة
 
-Navigation:
-• Use inline buttons to navigate through semesters, modules, and resource types
-• Use "Back" buttons to return to previous menus
-• The bot remembers your current position in the navigation
+التنقّل:
+• استخدم الأزرار المدمجة للتنقّل بين الفصول، الوحدات، وأنواع الموارد
+• استخدم زر «رجوع» للعودة إلى القوائم السابقة
+• البوت يتذكر موقعك الحالي أثناء التنقّل
 
-Features:
-• Browse engineering resources by semester and module
-• Access different types of resources (Cours, TD, TP, etc.)
-• Easy navigation with back buttons
-• Clean and intuitive interface`
+الميزات:
+• تصفّح موارد الهندسة حسب الفصل الدراسي والوحدة
+• الوصول إلى أنواع مختلفة من الموارد (دروس، أعمال موجهة، أعمال تطبيقية، إلخ)
+• تنقّل سهل باستخدام أزرار الرجوع
+• واجهة نظيفة وبسيطة`
   },
   
   // Button texts
