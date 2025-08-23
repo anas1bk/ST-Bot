@@ -11,7 +11,7 @@ const bot = new TelegramBot(botConfig.token, {
 });
 
 // Clear webhook on startup to prevent conflicts
-bot.deleteWebhook().then(() => {
+bot.setWebHook('').then(() => {
   console.log('✅ Webhook cleared successfully');
 }).catch((error) => {
   console.log('ℹ️ No webhook to clear or already cleared');
@@ -464,7 +464,7 @@ bot.on('polling_error', (error) => {
   if (error.code === 'ETELEGRAM' && error.response && error.response.statusCode === 409) {
     console.log('🔄 409 Conflict detected. Clearing webhook and restarting...');
     
-    bot.deleteWebhook().then(() => {
+    bot.setWebHook('').then(() => {
       console.log('✅ Webhook cleared, polling should resume');
     }).catch((webhookError) => {
       console.log('ℹ️ Webhook already cleared');
