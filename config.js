@@ -7,11 +7,11 @@ const semesterData = {
     modules: [
       'Analyse 1',
       'Algèbre 1',
-      'Structure de la matière',
+      'Chemie 1',
       'Physique 1',
-      'Probabilités et statistiques',
+      'Proba et stat',
       'Informatique 1',
-      'Éthique et déontologie',
+      'Éthique',
       'Anglais'
     ]
   },
@@ -45,13 +45,13 @@ const semesterData = {
     name: 'Semester 4',
     modules: [
       'Analyse numérique 2',
-      'Résistance des matériaux',
-      'Electronique fondamentale',
-      'Electricité fondamentale',
+      'RDM',
+      'Electronique ',
+      'Electricité ',
       'Théorie du signal',
       'Mesure et métrologie',
       'Informatique 4',
-      'Conception Assistée par Ordinateur',
+      'CAO',
       'Techniques d\'expression, d\'information et de communication'
     ]
   }
@@ -135,5 +135,6 @@ module.exports = {
   resourceEmojis,
   botConfig
 };
+
 
 
