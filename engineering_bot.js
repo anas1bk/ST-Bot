@@ -494,27 +494,46 @@ function startKeepAlive() {
   const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
   
   function pingServer() {
+    const isHttps = url.startsWith('https://');
+    const httpModule = isHttps ? require('https') : require('http');
+    
     console.log(`🔄 Keep-alive ping: ${url}`);
     
-    http.get(url, (res) => {
-      console.log(`✅ Keep-alive successful! Status: ${res.statusCode}`);
-    }).on('error', (err) => {
-      console.log(`❌ Keep-alive failed: ${err.message}`);
+    const req = httpModule.get(url, (res) => {
+      console.log(`✅ Keep-alive successful: ${res.statusCode}`);
+    });
+    
+    req.on('error', (error) => {
+      console.log(`⚠️ Keep-alive failed: ${error.message}`);
+      // Fallback: just log that we're alive
+      console.log('💓 Bot is still alive and running');
+    });
+    
+    req.setTimeout(10000, () => {
+      console.log('⚠️ Keep-alive timeout');
+      req.destroy();
     });
   }
   
-  // Ping every 14 minutes to keep server alive
-  // Render free tier sleeps after 15 minutes of inactivity
+  // Alternative keep-alive: just log periodically
+  function logAlive() {
+    console.log('💓 Bot is alive and running');
+  }
+  
+  // Ping every 14 minutes (Render free tier sleeps after 15 minutes)
   const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+  
+  // Start first ping immediately
+  pingServer();
+  
+  // Set up recurring pings
+  setInterval(pingServer, PING_INTERVAL);
+  
+  // Fallback: log alive every 5 minutes as backup
+  setInterval(logAlive, 5 * 60 * 1000);
   
   console.log('🚀 Keep-alive system started');
   console.log(`⏰ Will ping every ${PING_INTERVAL / 60000} minutes`);
-  
-  // Initial ping
-  pingServer();
-  
-  // Set up periodic pings
-  setInterval(pingServer, PING_INTERVAL);
 }
 
 // Start keep-alive system
