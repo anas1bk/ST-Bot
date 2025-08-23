@@ -7,11 +7,11 @@ const semesterData = {
     modules: [
       'Analyse 1',
       'Algèbre 1',
-      'Éléments de chimie (Structure de la matière)',
-      'Éléments de Mécanique (Physique 1)',
+      'Structure de la matière',
+      'Physique 1',
       'Probabilités et statistiques',
-      'Structure des ordinateurs et applications',
-      'Dimension Éthique et déontologie (les fondements)',
+      'Informatique 1',
+      'Éthique et déontologie',
       'Anglais'
     ]
   },
@@ -20,10 +20,10 @@ const semesterData = {
     modules: [
       'Analyse 2',
       'Algèbre 2',
-      'Électricité et Magnétisme (Physique 2)',
+      'Physique 2',
       'Thermodynamique',
       'Dessin technique',
-      'Programmation (Informatique 2)',
+      'Informatique 2',
       'Anglais',
       'Les métiers de l\'ingénieur'
     ]
@@ -36,8 +36,8 @@ const semesterData = {
       'Ondes et vibrations',
       'Mécanique des fluides',
       'Mécanique rationnelle',
-      'Informatique 3 (Matlab)',
-      'Dessin Assisté par Ordinateur',
+      'Informatique 3 ',
+      'DAO',
       'Anglais technique'
     ]
   },
@@ -135,4 +135,5 @@ module.exports = {
   resourceEmojis,
   botConfig
 };
+
 
