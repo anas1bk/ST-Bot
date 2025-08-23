@@ -98,10 +98,10 @@ You need to modify your `config.js` to use environment variables:
 
 ```javascript
 // In config.js, change this line:
-token: 'YOUR_BOT_TOKEN_HERE',
+token: '7938100914:AAFW5Gp_-8cwj7PtztMdV2MhMr1VladRR04',
 
 // To this:
-token: process.env.BOT_TOKEN || 'YOUR_BOT_TOKEN_HERE',
+token: process.env.BOT_TOKEN || '7938100914:AAFW5Gp_-8cwj7PtztMdV2MhMr1VladRR04',
 ```
 
 ### 4.6 Deploy
@@ -173,3 +173,4 @@ Once deployed, you can:
 ---
 
 **Remember**: Never share your bot token publicly! Always use environment variables for sensitive data.
+
