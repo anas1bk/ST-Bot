@@ -88,7 +88,7 @@ const botConfig = {
   // Replace with your actual bot token
   // For local development, use the token directly
   // For deployment (Render), use environment variable
-  token: process.env.BOT_TOKEN || '7938100914:AAEkuXNm5ATXpRKzxVkygXFwB17n8x5I_XM',
+  token: process.env.BOT_TOKEN || '7938100914:AAFW5Gp_-8cwj7PtztMdV2MhMr1VladRR04',
   
   // Bot commands
   commands: {
@@ -135,3 +135,4 @@ module.exports = {
   resourceEmojis,
   botConfig
 };
+
