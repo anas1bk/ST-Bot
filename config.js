@@ -57,6 +57,89 @@ const semesterData = {
   }
 };
 
+// File mapping system - maps semester/module/resource type to actual files
+const fileMapping = {
+  'semester_3': {
+    'Analyse 3': {
+      'cours': [
+        {
+          name: 'Cours Analyse 3.pdf',
+          path: './cour/Analyse 3/Cours Analyse 3.pdf',
+          description: 'Cours principal d\'Analyse 3'
+        },
+        {
+          name: 'Table.pdf',
+          path: './cour/Analyse 3/Table.pdf',
+          description: 'Table de référence pour Analyse 3'
+        }
+      ],
+      'td': [
+        {
+          name: 'TD 1.pdf',
+          path: './td/MR/TD 1.pdf',
+          description: 'Premier TD d\'Analyse 3'
+        },
+        {
+          name: 'TD 2.pdf',
+          path: './td/MR/TD 2.pdf',
+          description: 'Deuxième TD d\'Analyse 3'
+        },
+        {
+          name: 'TD 3.pdf',
+          path: './td/MR/TD 3.pdf',
+          description: 'Troisième TD d\'Analyse 3'
+        },
+        {
+          name: 'TD 4.pdf',
+          path: './td/MR/TD 4.pdf',
+          description: 'Quatrième TD d\'Analyse 3'
+        },
+        {
+          name: 'TD 5.pdf',
+          path: './td/MR/TD 5.pdf',
+          description: 'Cinquième TD d\'Analyse 3'
+        }
+      ]
+    },
+    'Analyse numérique 1': {
+      'cours': [
+        {
+          name: 'ANALYSE NUMERIQUE 1 (1).pdf',
+          path: './cour/Analyse numérique/ANALYSE NUMERIQUE 1 (1).pdf',
+          description: 'Cours principal d\'Analyse Numérique 1'
+        },
+        {
+          name: 'ANUNUM S3.pdf',
+          path: './cour/Analyse numérique/ANUNUM S3.pdf',
+          description: 'Support de cours Analyse Numérique S3'
+        }
+      ],
+      'td': [
+        {
+          name: 'tdndeg1_mdf.pdf',
+          path: './td/MDF/tdndeg1_mdf.pdf',
+          description: 'Premier TD d\'Analyse Numérique'
+        },
+        {
+          name: 'td2-2022.pdf',
+          path: './td/MDF/td2-2022.pdf',
+          description: 'Deuxième TD d\'Analyse Numérique'
+        },
+        {
+          name: 'td_3-2022.pdf',
+          path: './td/MDF/td_3-2022.pdf',
+          description: 'Troisième TD d\'Analyse Numérique'
+        },
+        {
+          name: 'td_mdf-04.pdf',
+          path: './td/MDF/td_mdf-04.pdf',
+          description: 'Quatrième TD d\'Analyse Numérique'
+        }
+      ]
+    }
+  }
+};
+
 // Resource types with emojis and their corresponding callback data
 const resourceTypes = [
   { text: '📘 Cours', callback_data: 'resource_cours' },
@@ -105,23 +188,25 @@ const botConfig = {
     semesterModules: '📚 {semesterName} Modules:\n\nSelect a module:',
     moduleResources: '📖 {moduleName}\n\nSelect resource type:',
     resourceComingSoon: '{emoji} {resourceName} for {moduleName}\n\nThis feature is coming soon! 🚀',
+    noFilesAvailable: '{emoji} {resourceName} for {moduleName}\n\n❌ No files available for this resource type yet.\n\n💡 Files will be added soon!',
+    filesAvailable: '{emoji} {resourceName} for {moduleName}\n\n📁 Available files:',
     error: '❌ An error occurred. Please try again.',
     help: `🤖 Engineering Bot Help
 
-الأوامر:
-/ing – تشغيل البوت واختيار الفصل الدراسي
-/help – عرض رسالة المساعدة
+Commands:
+/ing - Start the bot and select semester
+/help - Show this help message
 
-التنقّل:
-• استخدم الأزرار المدمجة للتنقّل بين الفصول، الوحدات، وأنواع الموارد
-• استخدم زر «رجوع» للعودة إلى القوائم السابقة
-• البوت يتذكر موقعك الحالي أثناء التنقّل
+Navigation:
+• Use inline buttons to navigate through semesters, modules, and resource types
+• Use "Back" buttons to return to previous menus
+• The bot remembers your current position in the navigation
 
-الميزات:
-• تصفّح موارد الهندسة حسب الفصل الدراسي والوحدة
-• الوصول إلى أنواع مختلفة من الموارد (دروس، أعمال موجهة، أعمال تطبيقية، إلخ)
-• تنقّل سهل باستخدام أزرار الرجوع
-• واجهة نظيفة وبسيطة`
+Features:
+• Browse engineering resources by semester and module
+• Access different types of resources (Cours, TD, TP, etc.)
+• Easy navigation with back buttons
+• Clean and intuitive interface`
   },
   
   // Button texts
@@ -136,7 +221,7 @@ module.exports = {
   semesterData,
   resourceTypes,
   resourceEmojis,
-  botConfig
+  botConfig,
+  fileMapping
 };
-
 
