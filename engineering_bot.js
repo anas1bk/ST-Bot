@@ -93,6 +93,26 @@ bot.onText(/\/ing/, (msg) => {
   });
 });
 
+// Command handler for /start
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const welcomeMessage = `🎓 مرحباً بك في بوت الهندسة!
+
+مرحباً ${msg.from.first_name}! 👋
+
+هذا البوت يساعدك في الوصول إلى الموارد التعليمية للهندسة.
+
+استخدم الأوامر التالية:
+• /ing - القائمة الرئيسية للموارد
+• /about - معلومات عن البوت
+• /send - إرسال ملفات للمطور
+• /help - المساعدة
+
+أهلاً وسهلاً بك! 🚀`;
+  
+  bot.sendMessage(chatId, welcomeMessage);
+});
+
 // Command handler for /help
 bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
@@ -103,6 +123,166 @@ bot.onText(/\/help/, (msg) => {
 bot.onText(/\/test/, (msg) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, '✅ Bot is working correctly! Use /ing to start.');
+});
+
+// Command handler for /about
+bot.onText(/\/about/, (msg) => {
+  const chatId = msg.chat.id;
+  const aboutMessage = `🤖 StTcIng_bot 🤖
+
+هذا البوت هو رفيقك في منصة تليجرام الذي يقدم العديد من الخدمات والإمكانيات المفيدة. دعنا نستعرض الوظائف الرئيسية لهذا البوت:
+
+تعليمات المستخدمين :
+
+ 🔹البداية (/start) 🚀:
+
+ عند استخدام هذا الأمر، يُرحب البوت بالمستخدم.
+
+
+ 🔹القائمة الرئيسية (/ing) 📚:
+
+   يمكن للمستخدمين الدخول إلى هذه القائمة للاختيار من بين العديد من الخيارات، مثل الوصول إلى معلومات حول المساقات الدراسية والامتحانات والكتب، وحتى كيفية التواصل مع المدرسين والمزيد.
+
+
+   🔷️ إرسال ملفات إلى منشئ البوت (/send) 📤 : 
+
+   بإمكان المستخدمين إرسال ملفات التي يرون أنها يجب أن تتوفر عند البوت إلى منشئ البوت لرفعها.
+
+ 🔹إرسال ملاحظات (/feedback) 📢:
+
+   يُتيح البوت للمستخدمين إمكانية مشاركة ملاحظاتهم وآرائهم أو في حالة واجهوا مشاكل في البوت ، ومن ثم يقوم بإرسال هذه الملاحظات إلى منشئ البوت.
+    ملاحظات المستخدمين ترسل إلى قناة خاصة(ليتم الرد في أسرع وقت ممكن )   
+في حالة توقف البوت عن العمل يمكن التواصل مع منشئ البوت @anassbkk ,  
+تم تقديم هذا البوت لكم بواسطة @anassbkk، شكر خاص لـ @mohammedkeina، لا تنسونا من دعائكم.
+
+
+  هذا البوت يوفر إمكانيات متعددة للمستخدمين ويمكن استخدامه لأغراض مختلفة على منصة تليجرام. ,و هو شريك موثوق يساعد المستخدمين على الحصول على المعلومات والخدمات بسهولة وفعالية. 📱`;
+  
+  bot.sendMessage(chatId, aboutMessage);
+});
+
+// Command handler for /send
+bot.onText(/\/send/, (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Store user session for file sending
+  userSessions.set(chatId, {
+    currentView: 'sending_file',
+    selectedSemester: null,
+    selectedModule: null,
+    fileData: null,
+    fileName: null
+  });
+  
+  bot.sendMessage(chatId, 'Please insert the files:');
+});
+
+// Command handler for /feedback
+bot.onText(/\/feedback/, (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Store user session for feedback
+  userSessions.set(chatId, {
+    currentView: 'sending_feedback',
+    selectedSemester: null,
+    selectedModule: null,
+    fileData: null,
+    fileName: null
+  });
+  
+  bot.sendMessage(chatId, '📢 Please share your feedback, suggestions, or report any issues:\n\n(Your feedback will be sent to the bot owner)');
+});
+
+// Handle file messages
+bot.on('document', async (msg) => {
+  const chatId = msg.chat.id;
+  const userSession = userSessions.get(chatId);
+  
+  if (userSession && userSession.currentView === 'sending_file') {
+    // Store file data
+    userSession.fileData = {
+      file_id: msg.document.file_id,
+      file_name: msg.document.file_name,
+      file_size: msg.document.file_size,
+      mime_type: msg.document.mime_type
+    };
+    userSessions.set(chatId, userSession);
+    
+    bot.sendMessage(chatId, 'Please enter the name of the file:');
+  }
+});
+
+// Handle text messages for file name
+bot.on('text', async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text;
+  const userSession = userSessions.get(chatId);
+  
+  // Handle feedback
+  if (userSession && userSession.currentView === 'sending_feedback') {
+    const botOwnerId = botConfig.ownerId;
+    
+    try {
+      // Send feedback to bot owner
+      await bot.sendMessage(botOwnerId, `📢 Feedback from user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nMessage: ${text}`);
+      
+      // Reset user session
+      userSessions.set(chatId, {
+        currentView: 'semesters',
+        selectedSemester: null,
+        selectedModule: null
+      });
+      
+      bot.sendMessage(chatId, '✅ Thank you for your feedback! It has been sent to the bot owner.');
+      
+    } catch (error) {
+      console.error('Error sending feedback to owner:', error);
+      bot.sendMessage(chatId, '❌ Sorry, there was an error sending your feedback. Please try again later.');
+      
+      // Reset user session
+      userSessions.set(chatId, {
+        currentView: 'semesters',
+        selectedSemester: null,
+        selectedModule: null
+      });
+    }
+    return;
+  }
+  
+  // Handle file name input (existing code)
+  if (userSession && userSession.currentView === 'sending_file' && userSession.fileData) {
+    const fileName = text;
+    
+    // Send file to bot owner
+    const botOwnerId = botConfig.ownerId;
+    
+    try {
+      // Send file to bot owner
+      await bot.sendDocument(botOwnerId, userSession.fileData.file_id, {
+        caption: `📤 File sent by user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nFile Name: ${fileName}\nOriginal Name: ${userSession.fileData.file_name}\nSize: ${userSession.fileData.file_size} bytes\nType: ${userSession.fileData.mime_type}`
+      });
+      
+      // Reset user session
+      userSessions.set(chatId, {
+        currentView: 'semesters',
+        selectedSemester: null,
+        selectedModule: null
+      });
+      
+      bot.sendMessage(chatId, 'Thank you! Your message has been sent to the bot owner.');
+      
+    } catch (error) {
+      console.error('Error sending file to owner:', error);
+      bot.sendMessage(chatId, '❌ Sorry, there was an error sending your file. Please try again later.');
+      
+      // Reset user session
+      userSessions.set(chatId, {
+        currentView: 'semesters',
+        selectedSemester: null,
+        selectedModule: null
+      });
+    }
+  }
 });
 
 // Callback query handler
