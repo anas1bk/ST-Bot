@@ -7,11 +7,11 @@ const semesterData = {
     modules: [
       'Analyse 1',
       'Algèbre 1',
-      'Chemie 1',
+      'Structure de la matière',
       'Physique 1',
-      'Proba et stat',
+      'Probabilités et statistiques',
       'Informatique 1',
-      'Éthique',
+      'Éthique et déontologie',
       'Anglais'
     ]
   },
@@ -45,13 +45,13 @@ const semesterData = {
     name: 'Semester 4',
     modules: [
       'Analyse numérique 2',
-      'RDM',
-      'Electronique ',
-      'Electricité ',
+      'Résistance des matériaux',
+      'Electronique fondamentale',
+      'Electricité fondamentale',
       'Théorie du signal',
       'Mesure et métrologie',
       'Informatique 4',
-      'CAO',
+      'Conception Assistée par Ordinateur',
       'Techniques d\'expression, d\'information et de communication'
     ]
   }
@@ -89,6 +89,9 @@ const botConfig = {
   // For local development, use the token directly
   // For deployment (Render), use environment variable
   token: process.env.BOT_TOKEN || '7938100914:AAFW5Gp_-8cwj7PtztMdV2MhMr1VladRR04',
+  
+  // Bot owner ID (replace with your Telegram user ID)
+  ownerId: process.env.BOT_OWNER_ID || '5665791396',
   
   // Bot commands
   commands: {
@@ -135,6 +138,4 @@ module.exports = {
   resourceEmojis,
   botConfig
 };
-
-
 
