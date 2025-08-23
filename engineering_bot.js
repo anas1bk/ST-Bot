@@ -150,12 +150,13 @@ bot.on('callback_query', async (query) => {
       const parts = data.split('_');
       console.log(`Module callback parts:`, parts);
       
-      if (parts.length < 3) {
+      if (parts.length < 4) {
         throw new Error(`Invalid module callback data: ${data}`);
       }
       
-      const semesterKey = parts[1];
-      const moduleIndex = parseInt(parts[2]);
+      // Format: mod_semester_1_4 (mod_semesterKey_index)
+      const semesterKey = `${parts[1]}_${parts[2]}`; // semester_1
+      const moduleIndex = parseInt(parts[3]);
       
       console.log(`Selected module - semester: ${semesterKey}, index: ${moduleIndex}`);
       
