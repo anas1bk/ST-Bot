@@ -2,7 +2,20 @@ const TelegramBot = require('node-telegram-bot-api');
 const { semesterData, resourceTypes, resourceEmojis, botConfig } = require('./config');
 
 // Initialize bot with token from config
-const bot = new TelegramBot(botConfig.token, { polling: true });
+const bot = new TelegramBot(botConfig.token, { 
+  polling: true,
+  // Add these options to prevent conflicts
+  webHook: false,
+  // Clear any existing webhooks on startup
+  disableWebhook: true
+});
+
+// Clear webhook on startup to prevent conflicts
+bot.deleteWebhook().then(() => {
+  console.log('✅ Webhook cleared successfully');
+}).catch((error) => {
+  console.log('ℹ️ No webhook to clear or already cleared');
+});
 
 // User session storage
 const userSessions = new Map();
@@ -446,12 +459,66 @@ bot.on('error', (error) => {
 
 bot.on('polling_error', (error) => {
   console.error('Polling error:', error);
+  
+  // If it's a 409 conflict, try to clear webhook and restart polling
+  if (error.code === 'ETELEGRAM' && error.response && error.response.statusCode === 409) {
+    console.log('🔄 409 Conflict detected. Clearing webhook and restarting...');
+    
+    bot.deleteWebhook().then(() => {
+      console.log('✅ Webhook cleared, polling should resume');
+    }).catch((webhookError) => {
+      console.log('ℹ️ Webhook already cleared');
+    });
+  }
 });
 
 // Start the bot
 console.log('🤖 Engineering Bot is running...');
 console.log('📝 Use /ing to start the bot');
 console.log('❓ Use /help for help');
+console.log('✅ Bot is ready and listening for messages');
+
+// Add a simple health check for Render
+const http = require('http');
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Bot is running!');
+});
+
+server.listen(process.env.PORT || 3000, () => {
+  console.log(`🌐 Health check server running on port ${process.env.PORT || 3000}`);
+});
+
+// Keep-alive system to prevent Render from sleeping
+function startKeepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+  
+  function pingServer() {
+    console.log(`🔄 Keep-alive ping: ${url}`);
+    
+    http.get(url, (res) => {
+      console.log(`✅ Keep-alive successful! Status: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.log(`❌ Keep-alive failed: ${err.message}`);
+    });
+  }
+  
+  // Ping every 14 minutes to keep server alive
+  // Render free tier sleeps after 15 minutes of inactivity
+  const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+  
+  console.log('🚀 Keep-alive system started');
+  console.log(`⏰ Will ping every ${PING_INTERVAL / 60000} minutes`);
+  
+  // Initial ping
+  pingServer();
+  
+  // Set up periodic pings
+  setInterval(pingServer, PING_INTERVAL);
+}
+
+// Start keep-alive system
+startKeepAlive();
 
 // Export for potential use in other files
 module.exports = {
