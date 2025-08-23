@@ -45,7 +45,7 @@ function getModulesKeyboard(semesterKey) {
   const modules = semesterData[semesterKey].modules;
   const buttons = modules.map((module, index) => ({
     text: module,
-    callback_data: `module_${semesterKey}_${index}`
+    callback_data: `mod_${semesterKey}_${index}`
   }));
   
   const backButton = {
@@ -99,6 +99,12 @@ bot.onText(/\/help/, (msg) => {
   bot.sendMessage(chatId, botConfig.messages.help);
 });
 
+// Command handler for /test
+bot.onText(/\/test/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, '✅ Bot is working correctly! Use /ing to start.');
+});
+
 // Callback query handler
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
@@ -114,9 +120,17 @@ bot.on('callback_query', async (query) => {
   };
   
   try {
+    console.log(`Processing callback: ${data} for chat ${chatId}`);
+    
     if (data.startsWith('semester_')) {
       // Semester selection
       const semesterKey = data.replace('semester_', '');
+      console.log(`Selected semester: ${semesterKey}`);
+      
+      if (!semesterData[semesterKey]) {
+        throw new Error(`Invalid semester key: ${semesterKey}`);
+      }
+      
       userSession.selectedSemester = semesterKey;
       userSession.currentView = 'modules';
       userSessions.set(chatId, userSession);
@@ -131,11 +145,27 @@ bot.on('callback_query', async (query) => {
         reply_markup: keyboard
       });
       
-    } else if (data.startsWith('module_')) {
+    } else if (data.startsWith('mod_')) {
       // Module selection
       const parts = data.split('_');
+      console.log(`Module callback parts:`, parts);
+      
+      if (parts.length < 3) {
+        throw new Error(`Invalid module callback data: ${data}`);
+      }
+      
       const semesterKey = parts[1];
       const moduleIndex = parseInt(parts[2]);
+      
+      console.log(`Selected module - semester: ${semesterKey}, index: ${moduleIndex}`);
+      
+      if (!semesterData[semesterKey]) {
+        throw new Error(`Invalid semester key: ${semesterKey}`);
+      }
+      
+      if (moduleIndex < 0 || moduleIndex >= semesterData[semesterKey].modules.length) {
+        throw new Error(`Invalid module index: ${moduleIndex} for semester ${semesterKey}`);
+      }
       
       userSession.selectedModule = moduleIndex;
       userSession.currentView = 'resources';
@@ -156,8 +186,12 @@ bot.on('callback_query', async (query) => {
       const resourceType = data.replace('resource_', '');
       const semesterKey = userSession.selectedSemester;
       const moduleIndex = userSession.selectedModule;
-      const moduleName = semesterData[semesterKey].modules[moduleIndex];
       
+      if (!semesterKey || moduleIndex === null || moduleIndex === undefined) {
+        throw new Error('No semester or module selected');
+      }
+      
+      const moduleName = semesterData[semesterKey].modules[moduleIndex];
       const emoji = resourceEmojis[resourceType] || '📄';
       const resourceName = resourceType.charAt(0).toUpperCase() + resourceType.slice(1).replace('_', ' ');
       
@@ -174,7 +208,7 @@ bot.on('callback_query', async (query) => {
           inline_keyboard: [[
             {
               text: botConfig.buttons.backToResourceTypes,
-              callback_data: `module_${semesterKey}_${moduleIndex}`
+              callback_data: `mod_${semesterKey}_${moduleIndex}`
             }
           ]]
         }
@@ -211,10 +245,15 @@ bot.on('callback_query', async (query) => {
         message_id: query.message.message_id,
         reply_markup: keyboard
       });
+    } else {
+      console.log(`Unknown callback data: ${data}`);
+      await bot.sendMessage(chatId, '❌ Unknown command. Please try again.');
     }
     
   } catch (error) {
     console.error('Error handling callback query:', error);
+    console.error('Callback data:', data);
+    console.error('User session:', userSession);
     await bot.sendMessage(chatId, botConfig.messages.error);
   }
 });
