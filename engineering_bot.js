@@ -402,16 +402,15 @@ bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
   
-  // Answer callback query to remove loading state
-  await bot.answerCallbackQuery(query.id);
-  
-  let userSession = userSessions.get(chatId) || {
-    currentView: 'semesters',
-    selectedSemester: null,
-    selectedModule: null
-  };
-  
   try {
+    // Answer callback query to remove loading state
+    await bot.answerCallbackQuery(query.id);
+    
+    let userSession = userSessions.get(chatId) || {
+      currentView: 'semesters',
+      selectedSemester: null,
+      selectedModule: null
+    };
     console.log(`Processing callback: ${data} for chat ${chatId}`);
     
     if (data.startsWith('semester_')) {
@@ -583,7 +582,13 @@ bot.on('callback_query', async (query) => {
         
       } catch (error) {
         console.error('Error sending file:', error);
-        await bot.sendMessage(chatId, `❌ Error sending file "${file.name}". Please try again later.`);
+        
+        // Check if it's a file not found error
+        if (error.message && error.message.includes('ENOENT')) {
+          await bot.sendMessage(chatId, `❌ File "${file.name}" not found. Please contact the bot administrator.`);
+        } else {
+          await bot.sendMessage(chatId, `❌ Error sending file "${file.name}". Please try again later.`);
+        }
       }
       
     } else if (data.startsWith('back_to_modules_')) {
@@ -619,11 +624,23 @@ bot.on('callback_query', async (query) => {
     console.error('Callback data:', data);
     console.error('User session:', userSession);
     
-    // Only send error message for actual errors, not for normal navigation
-    if (error.message && !error.message.includes('Invalid') && !error.message.includes('No semester')) {
+    // Only send error message for actual critical errors, not for navigation issues
+    const isNavigationError = error.message && (
+      error.message.includes('Invalid') || 
+      error.message.includes('No semester') ||
+      error.message.includes('No module') ||
+      error.message.includes('File not found') ||
+      error.message.includes('Invalid semester key') ||
+      error.message.includes('Invalid module index') ||
+      error.message.includes('Cannot read properties') ||
+      error.message.includes('undefined') ||
+      error.message.includes('null')
+    );
+    
+    if (!isNavigationError) {
       await bot.sendMessage(chatId, botConfig.messages.error);
     } else {
-      console.log('ℹ️ Navigation error handled gracefully');
+      console.log('ℹ️ Navigation error handled gracefully - no user notification needed');
     }
   }
 });
