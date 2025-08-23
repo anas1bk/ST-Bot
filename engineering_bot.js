@@ -1,7 +1,8 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
-const { semesterData, resourceTypes, resourceEmojis, botConfig, fileMapping } = require('./config');
+const { semesterData, resourceTypes, resourceEmojis, botConfig } = require('./config');
+const { loadFileMapping, generateAutomaticFileMapping } = require('./auto_file_detector');
 
 // Initialize bot with token from config
 const bot = new TelegramBot(botConfig.token, { 
@@ -21,6 +22,24 @@ bot.setWebHook('').then(() => {
 
 // User session storage
 const userSessions = new Map();
+
+// Load automatic file mapping
+let fileMapping = {};
+try {
+  console.log('🔄 Loading automatic file mapping...');
+  fileMapping = loadFileMapping();
+  
+  // If no mapping exists, generate one
+  if (Object.keys(fileMapping).length === 0) {
+    console.log('📁 No existing mapping found, generating automatic mapping...');
+    fileMapping = generateAutomaticFileMapping();
+  }
+  
+  console.log(`✅ Loaded file mapping with ${Object.keys(fileMapping).length} semesters`);
+} catch (error) {
+  console.error('❌ Error loading file mapping:', error);
+  fileMapping = {};
+}
 
 // Helper function to create inline keyboard
 function createInlineKeyboard(buttons, backButton = null) {
@@ -183,6 +202,39 @@ bot.onText(/\/help/, (msg) => {
 bot.onText(/\/test/, (msg) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, '✅ Bot is working correctly! Use /ing to start.');
+});
+
+// Command handler for /refresh (regenerate file mapping)
+bot.onText(/\/refresh/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    bot.sendMessage(chatId, '🔄 Regenerating file mapping...');
+    
+    // Regenerate file mapping
+    const newFileMapping = generateAutomaticFileMapping();
+    fileMapping = newFileMapping;
+    
+    const totalFiles = Object.values(newFileMapping).reduce((total, semester) => {
+      return total + Object.values(semester).reduce((semesterTotal, module) => {
+        return semesterTotal + Object.values(module).reduce((moduleTotal, resourceType) => {
+          return moduleTotal + resourceType.length;
+        }, 0);
+      }, 0);
+    }, 0);
+    
+    bot.sendMessage(chatId, `✅ File mapping refreshed successfully!\n\n📊 Found ${totalFiles} files across ${Object.keys(newFileMapping).length} semesters.`);
+    
+  } catch (error) {
+    console.error('Error refreshing file mapping:', error);
+    bot.sendMessage(chatId, '❌ Error refreshing file mapping. Check console for details.');
+  }
 });
 
 // Command handler for /about
@@ -391,7 +443,8 @@ bot.on('callback_query', async (query) => {
       console.log(`Module callback parts:`, parts);
       
       if (parts.length < 4) {
-        throw new Error(`Invalid module callback data: ${data}`);
+        console.log(`Invalid module callback data: ${data}`);
+        return;
       }
       
       // Format: mod_semester_1_4 (mod_semesterKey_index)
@@ -403,11 +456,13 @@ bot.on('callback_query', async (query) => {
       console.log(`Selected module - semester: ${semesterKey}, index: ${moduleIndex}`);
       
       if (!semesterData[semesterKey]) {
-        throw new Error(`Invalid semester key: ${semesterKey}`);
+        console.log(`Invalid semester key: ${semesterKey}`);
+        return;
       }
       
       if (moduleIndex < 0 || moduleIndex >= semesterData[semesterKey].modules.length) {
-        throw new Error(`Invalid module index: ${moduleIndex} for semester ${semesterKey}`);
+        console.log(`Invalid module index: ${moduleIndex} for semester ${semesterKey}`);
+        return;
       }
       
       userSession.selectedModule = moduleIndex;
@@ -431,7 +486,8 @@ bot.on('callback_query', async (query) => {
       const moduleIndex = userSession.selectedModule;
       
       if (!semesterKey || moduleIndex === null || moduleIndex === undefined) {
-        throw new Error('No semester or module selected');
+        console.log('No semester or module selected');
+        return;
       }
       
       const moduleName = semesterData[semesterKey].modules[moduleIndex];
@@ -497,7 +553,8 @@ bot.on('callback_query', async (query) => {
       // File selection - send the actual file
       const parts = data.split('_');
       if (parts.length < 6) {
-        throw new Error(`Invalid file callback data: ${data}`);
+        console.log(`Invalid file callback data: ${data}`);
+        return;
       }
       
       const semesterKey = `${parts[1]}_${parts[2]}`; // semester_3
@@ -509,7 +566,8 @@ bot.on('callback_query', async (query) => {
       const files = getFilesForResource(semesterKey, moduleName, resourceType);
       
       if (!files || !files[fileIndex]) {
-        throw new Error(`File not found: ${data}`);
+        console.log(`File not found: ${data}`);
+        return;
       }
       
       const file = files[fileIndex];
@@ -534,7 +592,8 @@ bot.on('callback_query', async (query) => {
       console.log(`Back to modules for semester: ${semesterKey}`);
       
       if (!semesterData[semesterKey]) {
-        throw new Error(`Invalid semester key for back button: ${semesterKey}`);
+        console.log(`Invalid semester key for back button: ${semesterKey}`);
+        return;
       }
       
       userSession.currentView = 'modules';
@@ -559,7 +618,13 @@ bot.on('callback_query', async (query) => {
     console.error('Error handling callback query:', error);
     console.error('Callback data:', data);
     console.error('User session:', userSession);
-    await bot.sendMessage(chatId, botConfig.messages.error);
+    
+    // Only send error message for actual errors, not for normal navigation
+    if (error.message && !error.message.includes('Invalid') && !error.message.includes('No semester')) {
+      await bot.sendMessage(chatId, botConfig.messages.error);
+    } else {
+      console.log('ℹ️ Navigation error handled gracefully');
+    }
   }
 });
 
