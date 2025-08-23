@@ -398,6 +398,8 @@ bot.on('callback_query', async (query) => {
       const semesterKey = `${parts[1]}_${parts[2]}`; // semester_1
       const moduleIndex = parseInt(parts[3]);
       
+      console.log(`Parsed semesterKey: ${semesterKey}, moduleIndex: ${moduleIndex}`);
+      
       console.log(`Selected module - semester: ${semesterKey}, index: ${moduleIndex}`);
       
       if (!semesterData[semesterKey]) {
@@ -529,6 +531,12 @@ bot.on('callback_query', async (query) => {
     } else if (data.startsWith('back_to_modules_')) {
       // Back to modules
       const semesterKey = data.replace('back_to_modules_', '');
+      console.log(`Back to modules for semester: ${semesterKey}`);
+      
+      if (!semesterData[semesterKey]) {
+        throw new Error(`Invalid semester key for back button: ${semesterKey}`);
+      }
+      
       userSession.currentView = 'modules';
       userSession.selectedModule = null;
       userSessions.set(chatId, userSession);
