@@ -1,8 +1,36 @@
+#!/usr/bin/env node
+
+// 🛡️ BLOCK DIRECT NODE EXECUTION
+if (require.main === module) {
+  console.log('🚫 DIRECT EXECUTION BLOCKED');
+  console.log('🚫 Do not run this file directly with node');
+  console.log('🚫 Use: npm start (which uses start_production.js)');
+  console.log('🚫 This bot only works on hosting services like Render');
+  process.exit(1);
+}
+
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
 const { universitiesData, resourceTypes, resourceEmojis, botConfig } = require('./config');
 const { loadFileMapping, generateAutomaticFileMapping } = require('./auto_file_detector');
+
+// 🛡️ DEFINITIVE LOCAL RUNNING PREVENTION
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
+  console.log('🚫 BOT BLOCKED: This bot can only run in production environment');
+  console.log('🚫 Local running is completely disabled for security');
+  console.log('🚫 Deploy to Render or another hosting service to use this bot');
+  process.exit(1);
+}
+
+if (!process.env.RENDER_EXTERNAL_URL && !process.env.HEROKU_APP_NAME && !process.env.VERCEL_URL) {
+  console.log('🚫 BOT BLOCKED: This bot can only run on hosting services');
+  console.log('🚫 Detected local environment - bot will not start');
+  console.log('🚫 Deploy to Render, Heroku, or Vercel to use this bot');
+  process.exit(1);
+}
+
+console.log('✅ Environment check passed - bot is running in production');
 
 // Initialize bot with token from config
 const bot = new TelegramBot(botConfig.token, { 
