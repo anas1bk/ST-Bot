@@ -106,13 +106,23 @@ function generateAutomaticFileMapping() {
         
         console.log(`📁 Found ${files.length} files in ${folderPath}`);
         
-        // Group files by module (folder name)
+        // Group files by module (folder name or direct files)
         const moduleFiles = {};
         
         files.forEach(file => {
           const dirParts = path.dirname(file.relativePath).split(path.sep);
           // universities/batna2/semester_1/cour/ModuleName/file.pdf -> ModuleName
-          const moduleName = dirParts[3]; // Index 3 for ModuleName
+          // OR universities/batna2/semester_1/cour/file.pdf -> direct file
+          
+          let moduleName;
+          if (dirParts.length >= 5) {
+            // File is in a module folder: universities/batna2/semester_1/cour/ModuleName/file.pdf
+            moduleName = dirParts[4]; // Index 4 for ModuleName
+          } else if (dirParts.length >= 4) {
+            // File is directly in resource folder: universities/batna2/semester_1/cour/file.pdf
+            // We'll use the resource type as the module name for direct files
+            moduleName = resourceType;
+          }
           
           if (!moduleName) return;
           

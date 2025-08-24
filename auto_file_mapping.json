@@ -12,7 +12,17 @@
       }
     },
     "semester_2": {},
-    "semester_3": {},
+    "semester_3": {
+      "Analyse 3": {
+        "cour": [
+          {
+            "name": "test_analyse3.pdf",
+            "path": "universities/batna2/semester_3/cour/Analyse 3/test_analyse3.pdf",
+            "description": "test_analyse3"
+          }
+        ]
+      }
+    },
     "semester_4": {}
   },
   "setif": {
