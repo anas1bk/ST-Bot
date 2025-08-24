@@ -4,8 +4,9 @@
   "description": "A clean, modular Telegram bot for engineering students",
   "main": "engineering_bot.js",
   "scripts": {
-    "start": "node engineering_bot.js",
-    "dev": "node start.js",
+    "start": "node start_production.js",
+    "dev": "echo \"⚠️  WARNING: This bot should only run in production environments!\" && echo \"🚫 Use your hosting service (Render, etc.) to run the bot\" && exit 1",
+    "local": "echo \"⚠️  WARNING: Running locally is disabled for security\" && echo \"🚫 Use your hosting service (Render, etc.) to run the bot\" && exit 1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

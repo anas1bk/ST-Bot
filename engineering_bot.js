@@ -774,12 +774,23 @@ const server = http.createServer((req, res) => {
   res.end('Bot is running!');
 });
 
-server.listen(process.env.PORT || 3000, () => {
-  console.log(`🌐 Health check server running on port ${process.env.PORT || 3000}`);
-});
+// Only start the server if we're in a production environment (like Render)
+if (process.env.NODE_ENV === 'production' || process.env.RENDER_EXTERNAL_URL) {
+  server.listen(process.env.PORT || 3000, () => {
+    console.log(`🌐 Health check server running on port ${process.env.PORT || 3000}`);
+  });
+} else {
+  console.log('🚫 Local server startup disabled - bot will only run in production');
+}
 
 // Keep-alive system to prevent Render from sleeping
 function startKeepAlive() {
+  // Only run keep-alive in production
+  if (!process.env.RENDER_EXTERNAL_URL) {
+    console.log('🚫 Keep-alive disabled - not running in production');
+    return;
+  }
+  
   const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
   
   function pingServer() {
