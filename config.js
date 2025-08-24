@@ -421,6 +421,9 @@ const botConfig = {
   // Examples: '@myfeedbackchannel' or '-1001234567890'
   feedbackChannel: process.env.FEEDBACK_CHANNEL || '-1002466094952', // Replace with your actual channel ID
   
+  // File sharing channel (for /send command)
+  fileSharingChannel: process.env.FILE_SHARING_CHANNEL || '-1002904651461', // Replace with your actual channel ID
+  
   // Bot commands
   commands: {
     start: '/ing',
@@ -442,6 +445,8 @@ const botConfig = {
 الأوامر:
 /ing  تشغيل البوت واختيار الجامعة
 /help  عرض رسالة المساعدة
+/feedback  إرسال ملاحظات أو اقتراحات
+/send  إرسال ملفات للمشاركة
 
 التنقّل:
 • استخدم الأزرار المدمجة للتنقّل بين الجامعات، الفصول، الوحدات، وأنواع الموارد
@@ -451,6 +456,8 @@ const botConfig = {
 الميزات:
 • تصفّح موارد الهندسة حسب الجامعة والفصل الدراسي والوحدة
 • الوصول إلى أنواع مختلفة من الموارد (دروس، أعمال موجهة، أعمال تطبيقية، إلخ)
+• إرسال ملاحظات إلى قناة خاصة
+• مشاركة ملفات مع الطلاب الآخرين
 • تنقّل سهل باستخدام أزرار الرجوع
 • واجهة نظيفة وبسيطة`
   },

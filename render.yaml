@@ -13,3 +13,5 @@ services:
         sync: false
       - key: FEEDBACK_CHANNEL
         sync: false
+      - key: FILE_SHARING_CHANNEL
+        sync: false

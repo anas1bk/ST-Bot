@@ -297,14 +297,14 @@ bot.onText(/\/about/, (msg) => {
    يمكن للمستخدمين الدخول إلى هذه القائمة للاختيار من بين العديد من الخيارات، مثل الوصول إلى معلومات حول المساقات الدراسية والامتحانات والكتب، وحتى كيفية التواصل مع المدرسين والمزيد.
 
 
-   🔷️ إرسال ملفات إلى منشئ البوت (/send) 📤 : 
+   🔷️ إرسال ملفات للمشاركة (/send) 📤 : 
 
-   بإمكان المستخدمين إرسال ملفات التي يرون أنها يجب أن تتوفر عند البوت إلى منشئ البوت لرفعها.
+   بإمكان المستخدمين إرسال ملفات للمشاركة مع الطلاب الآخرين في قناة خاصة.
 
  🔹إرسال ملاحظات (/feedback) 📢:
 
    يُتيح البوت للمستخدمين إمكانية مشاركة ملاحظاتهم وآرائهم أو في حالة واجهوا مشاكل في البوت ، ومن ثم يقوم بإرسال هذه الملاحظات إلى منشئ البوت.
-    ملاحظات المستخدمين ترسل إلى قناة خاصة(ليتم الرد في أسرع وقت ممكن )   
+    ملاحظات المستخدمين ترسل إلى قناة خاصة (ليتم الرد في أسرع وقت ممكن)   
 في حالة توقف البوت عن العمل يمكن التواصل مع منشئ البوت @anassbkk ,  
 تم تقديم هذا البوت لكم بواسطة @anassbkk، شكر خاص لـ @mohammedkeina، لا تنسونا من دعائكم.
 
@@ -378,8 +378,12 @@ bot.on('text', async (msg) => {
     const feedbackChannel = botConfig.feedbackChannel;
     
     try {
-      // Send feedback to the feedback channel
-      await bot.sendMessage(feedbackChannel, `📢 Feedback from user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nMessage: ${text}`);
+      // Send feedback to the feedback channel with improved format
+      const fullName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
+      const username = msg.from.username ? `@${msg.from.username}` : 'No username';
+      const userId = msg.from.id;
+      
+      await bot.sendMessage(feedbackChannel, `📢 Feedback from ${fullName} (${username})  Id : (${userId})\nMessage: ${text}`);
       
       // Reset user session
       userSessions.set(chatId, {
@@ -396,7 +400,11 @@ bot.on('text', async (msg) => {
       
       // Fallback: try sending to bot owner
       try {
-        await bot.sendMessage(botConfig.ownerId, `📢 Feedback from user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nMessage: ${text}`);
+        const fullName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
+        const username = msg.from.username ? `@${msg.from.username}` : 'No username';
+        const userId = msg.from.id;
+        
+        await bot.sendMessage(botConfig.ownerId, `📢 Feedback from ${fullName} (${username})  Id : (${userId})\nMessage: ${text}`);
         bot.sendMessage(chatId, '✅ Thank you for your feedback! It has been sent to the bot owner.');
       } catch (fallbackError) {
         console.error('Error sending feedback to owner:', fallbackError);
@@ -418,13 +426,17 @@ bot.on('text', async (msg) => {
   if (userSession && userSession.currentView === 'sending_file' && userSession.fileData) {
     const fileName = text;
     
-    // Send file to bot owner
-    const botOwnerId = botConfig.ownerId;
+    // Send file to file sharing channel
+    const fileSharingChannel = botConfig.fileSharingChannel;
     
     try {
-      // Send file to bot owner
-      await bot.sendDocument(botOwnerId, userSession.fileData.file_id, {
-        caption: `📤 File sent by user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nFile Name: ${fileName}\nOriginal Name: ${userSession.fileData.file_name}\nSize: ${userSession.fileData.file_size} bytes\nType: ${userSession.fileData.mime_type}`
+      // Send file to file sharing channel with improved format
+      const fullName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
+      const username = msg.from.username ? `@${msg.from.username}` : 'No username';
+      const userId = msg.from.id;
+      
+      await bot.sendDocument(fileSharingChannel, userSession.fileData.file_id, {
+        caption: `📢 File from ${fullName} (${username})  Id : (${userId})\nFile: ${fileName}`
       });
       
       // Reset user session
@@ -435,11 +447,25 @@ bot.on('text', async (msg) => {
         selectedModule: null
       });
       
-      bot.sendMessage(chatId, 'Thank you! Your message has been sent to the bot owner.');
+      bot.sendMessage(chatId, '✅ Thank you! Your file has been sent to our file sharing channel.');
       
     } catch (error) {
-      console.error('Error sending file to owner:', error);
-      bot.sendMessage(chatId, '❌ Sorry, there was an error sending your file. Please try again later.');
+      console.error('Error sending file to channel:', error);
+      
+      // Fallback: try sending to bot owner
+      try {
+        const fullName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
+        const username = msg.from.username ? `@${msg.from.username}` : 'No username';
+        const userId = msg.from.id;
+        
+        await bot.sendDocument(botConfig.ownerId, userSession.fileData.file_id, {
+          caption: `📢 File from ${fullName} (${username})  Id : (${userId})\nFile: ${fileName}`
+        });
+        bot.sendMessage(chatId, '✅ Thank you! Your file has been sent to the bot owner.');
+      } catch (fallbackError) {
+        console.error('Error sending file to owner:', fallbackError);
+        bot.sendMessage(chatId, '❌ Sorry, there was an error sending your file. Please try again later.');
+      }
       
       // Reset user session
       userSessions.set(chatId, {
