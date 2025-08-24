@@ -356,11 +356,11 @@ bot.on('text', async (msg) => {
   
   // Handle feedback
   if (userSession && userSession.currentView === 'sending_feedback') {
-    const botOwnerId = botConfig.ownerId;
+    const feedbackChannel = botConfig.feedbackChannel;
     
     try {
-      // Send feedback to bot owner
-      await bot.sendMessage(botOwnerId, `📢 Feedback from user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nMessage: ${text}`);
+      // Send feedback to the feedback channel
+      await bot.sendMessage(feedbackChannel, `📢 Feedback from user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nMessage: ${text}`);
       
       // Reset user session
       userSessions.set(chatId, {
@@ -370,11 +370,19 @@ bot.on('text', async (msg) => {
         selectedModule: null
       });
       
-      bot.sendMessage(chatId, '✅ Thank you for your feedback! It has been sent to the bot owner.');
+      bot.sendMessage(chatId, '✅ Thank you for your feedback! It has been sent to our feedback channel.');
       
     } catch (error) {
-      console.error('Error sending feedback to owner:', error);
-      bot.sendMessage(chatId, '❌ Sorry, there was an error sending your feedback. Please try again later.');
+      console.error('Error sending feedback to channel:', error);
+      
+      // Fallback: try sending to bot owner
+      try {
+        await bot.sendMessage(botConfig.ownerId, `📢 Feedback from user ${msg.from.first_name} (${msg.from.username || 'No username'})\n\nMessage: ${text}`);
+        bot.sendMessage(chatId, '✅ Thank you for your feedback! It has been sent to the bot owner.');
+      } catch (fallbackError) {
+        console.error('Error sending feedback to owner:', fallbackError);
+        bot.sendMessage(chatId, '❌ Sorry, there was an error sending your feedback. Please try again later.');
+      }
       
       // Reset user session
       userSessions.set(chatId, {

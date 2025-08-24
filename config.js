@@ -417,6 +417,10 @@ const botConfig = {
   // Bot owner ID (replace with your Telegram user ID)
   ownerId: process.env.BOT_OWNER_ID || '5665791396',
   
+  // Feedback channel (replace with your channel username or ID)
+  // Examples: '@myfeedbackchannel' or '-1001234567890'
+  feedbackChannel: process.env.FEEDBACK_CHANNEL || '@Feedback',
+  
   // Bot commands
   commands: {
     start: '/ing',
