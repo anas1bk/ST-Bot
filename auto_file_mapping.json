@@ -1,0 +1,46 @@
+{
+  "batna2": {
+    "semester_1": {
+      "cour": {
+        "cour": [
+          {
+            "name": "test_cours.txt",
+            "path": "universities/batna2/semester_1/cour/test_cours.txt",
+            "description": "test_cours"
+          }
+        ]
+      }
+    },
+    "semester_2": {},
+    "semester_3": {},
+    "semester_4": {}
+  },
+  "setif": {
+    "semester_1": {},
+    "semester_2": {},
+    "semester_3": {},
+    "semester_4": {}
+  },
+  "usthb": {
+    "semester_1": {
+      "cour": {
+        "cour": [
+          {
+            "name": "test_cours.txt",
+            "path": "universities/usthb/semester_1/cour/test_cours.txt",
+            "description": "test_cours"
+          }
+        ]
+      }
+    },
+    "semester_2": {},
+    "semester_3": {},
+    "semester_4": {}
+  },
+  "constantine1": {
+    "semester_1": {},
+    "semester_2": {},
+    "semester_3": {},
+    "semester_4": {}
+  }
+}

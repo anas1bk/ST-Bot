@@ -1,0 +1,2 @@
+This is a sample course file for Batna 2 - Semester 1 - Analyse 1
+This file is used to test the multi-university file detection system.

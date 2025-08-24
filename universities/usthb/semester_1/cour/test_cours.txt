@@ -1,0 +1,3 @@
+This is a sample course file for USTHB - Semester 1 - Analyse 1
+This file shows different content for different universities.
+USTHB has different curriculum and materials compared to Batna 2.

@@ -1,0 +1,26 @@
+{
+  "name": "engineering-telegram-bot",
+  "version": "1.0.0",
+  "description": "A clean, modular Telegram bot for engineering students",
+  "main": "engineering_bot.js",
+  "scripts": {
+    "start": "node engineering_bot.js",
+    "dev": "node start.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "engineering",
+    "education",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.65.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
