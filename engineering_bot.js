@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { universitiesData, resourceTypes, resourceEmojis, botConfig } = require('./config');
 const { loadFileMapping, generateAutomaticFileMapping } = require('./auto_file_detector');
+const Analytics = require('./analytics');
 
 // 🛡️ DEFINITIVE LOCAL RUNNING PREVENTION
 if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
@@ -41,6 +42,9 @@ bot.setWebHook('').then(() => {
 
 // User session storage
 const userSessions = new Map();
+
+// Initialize analytics
+const analytics = new Analytics(botConfig);
 
 // Load automatic file mapping
 let fileMapping = {};
@@ -278,6 +282,105 @@ bot.onText(/\/refresh/, async (msg) => {
   }
 });
 
+// Command handler for /analytics (admin only)
+bot.onText(/\/analytics/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    const stats = analytics.getRealTimeStats();
+    
+    const message = `📊 <b>Real-Time Analytics</b>\n\n` +
+      `<b>Today's Activity:</b>\n` +
+      `• Users: ${stats.today.totalUsers}\n` +
+      `• Actions: ${stats.today.totalActions}\n` +
+      `• Downloads: ${stats.today.fileDownloads}\n` +
+      `• Views: ${stats.today.moduleViews}\n` +
+      `• Feedback: ${stats.today.feedbackSent}\n` +
+      `• Files Shared: ${stats.today.filesShared}\n\n` +
+      `<b>Overall Stats:</b>\n` +
+      `• Total Users: ${stats.totalUsers}\n` +
+      `• Total Files: ${stats.totalFiles}\n` +
+      `• Total Modules: ${stats.totalModules}\n` +
+      `• Uptime: ${stats.uptime}\n\n` +
+      `<b>Commands:</b>\n` +
+      `/analytics_weekly - Generate weekly report\n` +
+      `/analytics_monthly - Generate monthly report\n` +
+      `/analytics_clean - Clean old data`;
+    
+    bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+    
+  } catch (error) {
+    console.error('Error getting analytics:', error);
+    bot.sendMessage(chatId, '❌ Error getting analytics. Check console for details.');
+  }
+});
+
+// Command handler for /analytics_weekly (admin only)
+bot.onText(/\/analytics_weekly/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    bot.sendMessage(chatId, '📊 Generating weekly analytics report...');
+    await analytics.generateWeeklyReport(bot);
+    bot.sendMessage(chatId, '✅ Weekly report sent to analytics channel!');
+  } catch (error) {
+    console.error('Error generating weekly report:', error);
+    bot.sendMessage(chatId, '❌ Error generating weekly report. Check console for details.');
+  }
+});
+
+// Command handler for /analytics_monthly (admin only)
+bot.onText(/\/analytics_monthly/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    bot.sendMessage(chatId, '📈 Generating monthly analytics report...');
+    await analytics.generateMonthlyReport(bot);
+    bot.sendMessage(chatId, '✅ Monthly report sent to analytics channel!');
+  } catch (error) {
+    console.error('Error generating monthly report:', error);
+    bot.sendMessage(chatId, '❌ Error generating monthly report. Check console for details.');
+  }
+});
+
+// Command handler for /analytics_clean (admin only)
+bot.onText(/\/analytics_clean/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    bot.sendMessage(chatId, '🧹 Cleaning old analytics data...');
+    analytics.cleanOldData();
+    bot.sendMessage(chatId, '✅ Old analytics data cleaned successfully!');
+  } catch (error) {
+    console.error('Error cleaning analytics data:', error);
+    bot.sendMessage(chatId, '❌ Error cleaning analytics data. Check console for details.');
+  }
+});
+
 // Command handler for /about
 bot.onText(/\/about/, (msg) => {
   const chatId = msg.chat.id;
@@ -378,6 +481,15 @@ bot.on('text', async (msg) => {
     const feedbackChannel = botConfig.feedbackChannel;
     
     try {
+      // Track feedback for analytics
+      const userInfo = {
+        first_name: msg.from.first_name,
+        last_name: msg.from.last_name,
+        username: msg.from.username,
+        id: msg.from.id
+      };
+      analytics.trackUserActivity(msg.from.id, userInfo, 'feedback_sent', text);
+      
       // Send feedback to the feedback channel with improved format
       const fullName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
       const username = msg.from.username ? `@${msg.from.username}` : 'No username';
@@ -430,6 +542,15 @@ bot.on('text', async (msg) => {
     const fileSharingChannel = botConfig.fileSharingChannel;
     
     try {
+      // Track file sharing for analytics
+      const userInfo = {
+        first_name: msg.from.first_name,
+        last_name: msg.from.last_name,
+        username: msg.from.username,
+        id: msg.from.id
+      };
+      analytics.trackUserActivity(msg.from.id, userInfo, 'file_shared', fileName);
+      
       // Send file to file sharing channel with improved format
       const fullName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
       const username = msg.from.username ? `@${msg.from.username}` : 'No username';
@@ -482,6 +603,7 @@ bot.on('text', async (msg) => {
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
+  const startTime = Date.now();
   
   try {
     // Answer callback query to remove loading state
@@ -587,6 +709,15 @@ bot.on('callback_query', async (query) => {
       const moduleName = universitiesData[universityKey].semesters[semesterKey].modules[moduleIndex];
       const message = formatMessage(botConfig.messages.moduleResources, { moduleName });
       const keyboard = getResourceTypesKeyboard(universityKey, semesterKey, moduleIndex);
+      
+      // Track module view for analytics
+      const userInfo = {
+        first_name: query.from.first_name,
+        last_name: query.from.last_name,
+        username: query.from.username,
+        id: query.from.id
+      };
+      analytics.trackModuleView(moduleName, universityKey, semesterKey, query.from.id, userInfo);
       
       await bot.editMessageText(message, {
         chat_id: chatId,
@@ -742,6 +873,15 @@ bot.on('callback_query', async (query) => {
       const file = files[fileIndex];
       
       try {
+        // Track file download for analytics
+        const userInfo = {
+          first_name: query.from.first_name,
+          last_name: query.from.last_name,
+          username: query.from.username,
+          id: query.from.id
+        };
+        analytics.trackFileDownload(file.path, query.from.id, userInfo);
+        
         // Send the file
         await bot.sendDocument(chatId, file.path, {
           caption: `${file.name}\n\n${file.description || 'No description available'}`
@@ -766,32 +906,40 @@ bot.on('callback_query', async (query) => {
       await bot.sendMessage(chatId, '❌ Unknown command. Please try again.');
     }
     
-  } catch (error) {
-    console.error('Error handling callback query:', error);
-    console.error('Callback data:', data);
-    console.error('User session:', userSession);
-    
-    // Only send error message for actual critical errors, not for navigation issues
-    const isNavigationError = error.message && (
-      error.message.includes('Invalid') || 
-      error.message.includes('No university') ||
-      error.message.includes('No semester') ||
-      error.message.includes('No module') ||
-      error.message.includes('File not found') ||
-      error.message.includes('Invalid university key') ||
-      error.message.includes('Invalid semester key') ||
-      error.message.includes('Invalid module index') ||
-      error.message.includes('Cannot read properties') ||
-      error.message.includes('undefined') ||
-      error.message.includes('null')
-    );
-    
-    if (!isNavigationError) {
-      await bot.sendMessage(chatId, botConfig.messages.error);
-    } else {
-      console.log('ℹ️ Navigation error handled gracefully - no user notification needed');
+      } catch (error) {
+      console.error('Error handling callback query:', error);
+      console.error('Callback data:', data);
+      console.error('User session:', userSession);
+      
+      // Track performance and error
+      const responseTime = Date.now() - startTime;
+      analytics.trackPerformance('callback_query', responseTime, false, error);
+      
+      // Only send error message for actual critical errors, not for navigation issues
+      const isNavigationError = error.message && (
+        error.message.includes('Invalid') || 
+        error.message.includes('No university') ||
+        error.message.includes('No semester') ||
+        error.message.includes('No module') ||
+        error.message.includes('File not found') ||
+        error.message.includes('Invalid university key') ||
+        error.message.includes('Invalid semester key') ||
+        error.message.includes('Invalid module index') ||
+        error.message.includes('Cannot read properties') ||
+        error.message.includes('undefined') ||
+        error.message.includes('null')
+      );
+      
+      if (!isNavigationError) {
+        await bot.sendMessage(chatId, botConfig.messages.error);
+      } else {
+        console.log('ℹ️ Navigation error handled gracefully - no user notification needed');
+      }
+    } finally {
+      // Track successful performance
+      const responseTime = Date.now() - startTime;
+      analytics.trackPerformance('callback_query', responseTime, true);
     }
-  }
 });
 
 // Error handling

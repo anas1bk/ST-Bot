@@ -424,6 +424,20 @@ const botConfig = {
   // File sharing channel (for /send command)
   fileSharingChannel: process.env.FILE_SHARING_CHANNEL || '-1002904651461', // Replace with your actual channel ID
   
+  // Analytics channel (for reports and insights)
+  analyticsChannel: process.env.ANALYTICS_CHANNEL || '-1003030816380', // Replace with your analytics channel ID
+  
+  // Analytics settings
+  analytics: {
+    enabled: true,
+    trackFileDownloads: true,
+    trackUserActivity: true,
+    trackModuleViews: true,
+    generateWeeklyReports: true,
+    generateMonthlyReports: true,
+    maxDataRetentionDays: 90 // Keep data for 90 days
+  },
+  
   // Bot commands
   commands: {
     start: '/ing',

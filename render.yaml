@@ -15,3 +15,5 @@ services:
         sync: false
       - key: FILE_SHARING_CHANNEL
         sync: false
+      - key: ANALYTICS_CHANNEL
+        sync: false
