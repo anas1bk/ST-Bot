@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: engineering-bot
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_OWNER_ID
+        sync: false
+      - key: FEEDBACK_CHANNEL
+        sync: false

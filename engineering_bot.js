@@ -1,14 +1,5 @@
 #!/usr/bin/env node
 
-// 🛡️ BLOCK DIRECT NODE EXECUTION
-if (require.main === module) {
-  console.log('🚫 DIRECT EXECUTION BLOCKED');
-  console.log('🚫 Do not run this file directly with node');
-  console.log('🚫 Use: npm start (which uses start_production.js)');
-  console.log('🚫 This bot only works on hosting services like Render');
-  process.exit(1);
-}
-
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');

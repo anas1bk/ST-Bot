@@ -2,9 +2,9 @@
   "name": "engineering-telegram-bot",
   "version": "1.0.0",
   "description": "A clean, modular Telegram bot for engineering students",
-  "main": "engineering_bot.js",
+  "main": "start.js",
   "scripts": {
-    "start": "node start_production.js",
+    "start": "node start.js",
     "dev": "echo \"🚫 LOCAL RUNNING BLOCKED\" && echo \"🚫 This bot can only run on hosting services\" && echo \"🚫 Deploy to Render to use this bot\" && exit 1",
     "local": "echo \"🚫 LOCAL RUNNING BLOCKED\" && echo \"🚫 This bot can only run on hosting services\" && echo \"🚫 Deploy to Render to use this bot\" && exit 1",
     "run": "echo \"🚫 LOCAL RUNNING BLOCKED\" && echo \"🚫 This bot can only run on hosting services\" && echo \"🚫 Deploy to Render to use this bot\" && exit 1",
