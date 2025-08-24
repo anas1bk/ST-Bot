@@ -419,7 +419,7 @@ const botConfig = {
   
   // Feedback channel (replace with your channel username or ID)
   // Examples: '@myfeedbackchannel' or '-1001234567890'
-  feedbackChannel: process.env.FEEDBACK_CHANNEL || '@Feedback',
+  feedbackChannel: process.env.FEEDBACK_CHANNEL || '-1002466094952', // Replace with your actual channel ID
   
   // Bot commands
   commands: {
