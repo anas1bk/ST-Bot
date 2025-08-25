@@ -6,26 +6,78 @@ const path = require('path');
 const { universitiesData, resourceTypes, resourceEmojis, botConfig } = require('./config');
 const { loadFileMapping, generateAutomaticFileMapping } = require('./auto_file_detector');
 const Analytics = require('./analytics');
+const SecurityManager = require('./security');
 
 // 🛡️ DEFINITIVE LOCAL RUNNING PREVENTION
-if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
-  console.log('🚫 BOT BLOCKED: This bot can only run in production environment');
-  console.log('🚫 Local running is completely disabled for security');
-  console.log('🚫 Deploy to Render or another hosting service to use this bot');
+// Initialize security validation
+let secureToken = null;
+
+try {
+  // Check 1: Environment validation
+  if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
+    security.logSecurityEvent('ENVIRONMENT_BLOCKED', 'NODE_ENV must be "production"', 'CRITICAL');
+    console.log('🚫 BOT BLOCKED: This bot can only run in production environment');
+    console.log('🚫 Local running is completely disabled for security');
+    console.log('🚫 Deploy to Render or another hosting service to use this bot');
+    process.exit(1);
+  }
+
+  // Check 2: Hosting service detection
+  const hostingServices = [
+    'RENDER_EXTERNAL_URL',
+    'HEROKU_APP_NAME', 
+    'RAILWAY_STATIC_URL',
+    'VERCEL_URL',
+    'NETLIFY_URL',
+    'FLY_APP_NAME',
+    'DIGITALOCEAN_APP_PLATFORM',
+    'AWS_LAMBDA_FUNCTION_NAME'
+  ];
+
+  const isHosted = hostingServices.some(service => process.env[service]);
+
+  if (!isHosted) {
+    security.logSecurityEvent('HOSTING_SERVICE_BLOCKED', 'No recognized hosting service detected', 'CRITICAL');
+    console.log('🚫 BOT BLOCKED: This bot can only run on hosting services');
+    console.log('🚫 Detected local environment - bot will not start');
+    console.log('🚫 Deploy to Render, Heroku, or Vercel to use this bot');
+    process.exit(1);
+  }
+
+  // Check 3: Bot token validation and security
+  if (!process.env.BOT_TOKEN) {
+    security.logSecurityEvent('BOT_TOKEN_MISSING', 'BOT_TOKEN environment variable not set', 'CRITICAL');
+    console.log('🚫 BOT TOKEN BLOCKED: BOT_TOKEN environment variable not set');
+    console.log('🚫 This bot requires a valid bot token');
+    process.exit(1);
+  }
+
+  // Validate and secure the token
+  secureToken = security.validateAndSecureToken(process.env.BOT_TOKEN);
+  
+  // Validate server status
+  if (!security.validateServerStatus()) {
+    security.logSecurityEvent('SERVER_STATUS_INVALID', 'Server status validation failed', 'CRITICAL');
+    console.log('🚫 SERVER STATUS INVALID: Server status validation failed');
+    process.exit(1);
+  }
+
+  console.log('✅ Environment check passed - bot is running in production');
+  console.log('✅ Hosting service detected:', hostingServices.find(service => process.env[service]));
+  console.log('✅ Bot token validated and secured');
+  console.log('✅ Server status validated');
+  
+  security.logSecurityEvent('BOT_STARTUP_SUCCESS', 'Bot startup validation completed successfully');
+
+} catch (error) {
+  security.logSecurityEvent('BOT_STARTUP_FAILED', error.message, 'CRITICAL');
+  console.log('🚫 BOT STARTUP FAILED:', error.message);
+  console.log('🚫 Please check your configuration and try again');
   process.exit(1);
 }
 
-if (!process.env.RENDER_EXTERNAL_URL && !process.env.HEROKU_APP_NAME && !process.env.VERCEL_URL) {
-  console.log('🚫 BOT BLOCKED: This bot can only run on hosting services');
-  console.log('🚫 Detected local environment - bot will not start');
-  console.log('🚫 Deploy to Render, Heroku, or Vercel to use this bot');
-  process.exit(1);
-}
-
-console.log('✅ Environment check passed - bot is running in production');
-
-// Initialize bot with token from config
-const bot = new TelegramBot(botConfig.token, { 
+// Initialize bot with secure token
+const bot = new TelegramBot(process.env.BOT_TOKEN, { 
   polling: true,
   // Add these options to prevent conflicts
   webHook: false,
@@ -43,7 +95,8 @@ bot.setWebHook('').then(() => {
 // User session storage
 const userSessions = new Map();
 
-// Initialize analytics
+// Initialize security and analytics
+const security = new SecurityManager();
 const analytics = new Analytics(botConfig);
 
 // Load automatic file mapping
@@ -218,6 +271,22 @@ bot.onText(/\/ing/, (msg) => {
 // Command handler for /start
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
+  
+  // Security validation
+  if (!security.validateUserInput(msg.text, 'command')) {
+    security.logSecurityEvent('INVALID_USER_INPUT', 'Invalid input in /start command', 'WARNING');
+    return;
+  }
+  
+  // Track user activity for analytics
+  const userInfo = {
+    first_name: msg.from.first_name,
+    last_name: msg.from.last_name,
+    username: msg.from.username,
+    id: msg.from.id
+  };
+  analytics.trackUserActivity(msg.from.id, userInfo, 'command_start');
+  
   const welcomeMessage = `🎓 مرحباً بك في بوت الهندسة!
 
 مرحباً ${msg.from.first_name}! 👋
@@ -231,6 +300,12 @@ bot.onText(/\/start/, (msg) => {
 • /help - المساعدة
 
 أهلاً وسهلاً بك! 🚀`;
+  
+  // Security monitoring of bot response
+  if (!security.monitorBotResponse(welcomeMessage)) {
+    security.logSecurityEvent('SUSPICIOUS_BOT_RESPONSE', 'Suspicious content in /start response', 'WARNING');
+    return;
+  }
   
   bot.sendMessage(chatId, welcomeMessage);
 });
@@ -378,6 +453,62 @@ bot.onText(/\/analytics_clean/, async (msg) => {
   } catch (error) {
     console.error('Error cleaning analytics data:', error);
     bot.sendMessage(chatId, '❌ Error cleaning analytics data. Check console for details.');
+  }
+});
+
+// Command handler for /security (admin only)
+bot.onText(/\/security/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    const metrics = security.getSecurityMetrics();
+    
+    const message = `🛡️ <b>Security Status</b>\n\n` +
+      `<b>Security Events:</b>\n` +
+      `• Total Events: ${metrics.totalEvents}\n` +
+      `• Critical Events: ${metrics.criticalEvents}\n` +
+      `• Error Events: ${metrics.errorEvents}\n` +
+      `• Warning Events: ${metrics.warningEvents}\n\n` +
+      `<b>Suspicious Activities:</b>\n` +
+      `• Count: ${metrics.suspiciousActivities}\n\n` +
+      `<b>System Status:</b>\n` +
+      `• Uptime: ${Math.floor(metrics.uptime / 3600)}h ${Math.floor((metrics.uptime % 3600) / 60)}m\n` +
+      `• Memory Usage: ${Math.round(metrics.memoryUsage.heapUsed / 1024 / 1024)}MB\n\n` +
+      `<b>Commands:</b>\n` +
+      `/security_clean - Clean old security logs\n` +
+      `/security_export - Export security data`;
+    
+    bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+    
+  } catch (error) {
+    console.error('Error getting security metrics:', error);
+    bot.sendMessage(chatId, '❌ Error getting security metrics. Check console for details.');
+  }
+});
+
+// Command handler for /security_clean (admin only)
+bot.onText(/\/security_clean/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Check if user is bot owner
+  if (msg.from.id.toString() !== botConfig.ownerId) {
+    bot.sendMessage(chatId, '❌ This command is only available to the bot owner.');
+    return;
+  }
+  
+  try {
+    bot.sendMessage(chatId, '🧹 Cleaning old security logs...');
+    security.cleanupOldLogs();
+    bot.sendMessage(chatId, '✅ Old security logs cleaned successfully!');
+  } catch (error) {
+    console.error('Error cleaning security logs:', error);
+    bot.sendMessage(chatId, '❌ Error cleaning security logs. Check console for details.');
   }
 });
 
@@ -604,6 +735,13 @@ bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
   const startTime = Date.now();
+  
+  // Security validation
+  if (!security.validateUserInput(data, 'callback')) {
+    security.logSecurityEvent('INVALID_CALLBACK_DATA', 'Invalid callback data detected', 'WARNING');
+    await bot.answerCallbackQuery(query.id, { text: 'Invalid request' });
+    return;
+  }
   
   try {
     // Answer callback query to remove loading state
@@ -873,6 +1011,12 @@ bot.on('callback_query', async (query) => {
       const file = files[fileIndex];
       
       try {
+        // Security validation for file download
+        if (!security.validateUserInput(file.name, 'filename')) {
+          security.logSecurityEvent('INVALID_FILENAME', 'Invalid filename detected', 'WARNING');
+          return;
+        }
+        
         // Track file download for analytics
         const userInfo = {
           first_name: query.from.first_name,
@@ -882,13 +1026,27 @@ bot.on('callback_query', async (query) => {
         };
         analytics.trackFileDownload(file.path, query.from.id, userInfo);
         
+        // Security monitoring of file caption
+        const fileCaption = `${file.name}\n\n${file.description || 'No description available'}`;
+        if (!security.monitorBotResponse(fileCaption)) {
+          security.logSecurityEvent('SUSPICIOUS_FILE_CAPTION', 'Suspicious content in file caption', 'WARNING');
+          return;
+        }
+        
         // Send the file
         await bot.sendDocument(chatId, file.path, {
-          caption: `${file.name}\n\n${file.description || 'No description available'}`
+          caption: fileCaption
         });
         
+        // Security monitoring of success message
+        const successMessage = `✅ File "${file.name}" sent successfully!`;
+        if (!security.monitorBotResponse(successMessage)) {
+          security.logSecurityEvent('SUSPICIOUS_SUCCESS_MESSAGE', 'Suspicious content in success message', 'WARNING');
+          return;
+        }
+        
         // Send a success message
-        await bot.sendMessage(chatId, `✅ File "${file.name}" sent successfully!`);
+        await bot.sendMessage(chatId, successMessage);
         
       } catch (error) {
         console.error('Error sending file:', error);
@@ -944,20 +1102,25 @@ bot.on('callback_query', async (query) => {
 
 // Error handling
 bot.on('error', (error) => {
+  security.logSecurityEvent('BOT_ERROR', error.message, 'ERROR');
   console.error('Bot error:', error);
 });
 
 bot.on('polling_error', (error) => {
+  security.logSecurityEvent('POLLING_ERROR', error.message, 'ERROR');
   console.error('Polling error:', error);
   
   // If it's a 409 conflict, try to clear webhook and restart polling
   if (error.code === 'ETELEGRAM' && error.response && error.response.statusCode === 409) {
+    security.logSecurityEvent('WEBHOOK_CONFLICT', '409 Conflict detected, clearing webhook', 'WARNING');
     console.log('🔄 409 Conflict detected. Clearing webhook and restarting...');
     
     bot.setWebHook('').then(() => {
       console.log('✅ Webhook cleared, polling should resume');
+      security.logSecurityEvent('WEBHOOK_CLEARED', 'Webhook cleared successfully');
     }).catch((webhookError) => {
       console.log('ℹ️ Webhook already cleared');
+      security.logSecurityEvent('WEBHOOK_ALREADY_CLEARED', 'Webhook was already cleared');
     });
   }
 });
