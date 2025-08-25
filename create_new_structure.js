@@ -92,24 +92,31 @@ function createUniversityStructure() {
 function createSpecializationStructure() {
   console.log('\n🎯 Creating Spécialité structure...');
   
-  for (const specialization of specializations) {
-    console.log(`\n⚡ Creating structure for ${specialization}...`);
-    
-    // Create semesters 5-6
-    for (let semesterNum = 5; semesterNum <= 6; semesterNum++) {
-      const semesterKey = `semester_${semesterNum}`;
+  // Only create specializations for universities that have them (currently only batna2)
+  for (const university of universities) {
+    if (university === 'batna2') {
+      console.log(`\n⚡ Creating specialization structure for ${university}...`);
       
-      for (const resourceType of resourceTypes) {
-        const resourcePath = path.join('specializations', specialization, semesterKey, resourceType);
-        createDirectory(resourcePath);
-        createGitkeep(resourcePath);
+      for (const specialization of specializations) {
+        console.log(`\n⚡ Creating structure for ${specialization} in ${university}...`);
         
-        // Create module folders for CESE
-        if (ceseModules[semesterKey]) {
-          for (const module of ceseModules[semesterKey]) {
-            const modulePath = path.join(resourcePath, module);
-            createDirectory(modulePath);
-            createGitkeep(modulePath);
+        // Create semesters 5-6
+        for (let semesterNum = 5; semesterNum <= 6; semesterNum++) {
+          const semesterKey = `semester_${semesterNum}`;
+          
+          for (const resourceType of resourceTypes) {
+            const resourcePath = path.join('universities', university, 'specializations', specialization, semesterKey, resourceType);
+            createDirectory(resourcePath);
+            createGitkeep(resourcePath);
+            
+            // Create module folders for CESE
+            if (ceseModules[semesterKey]) {
+              for (const module of ceseModules[semesterKey]) {
+                const modulePath = path.join(resourcePath, module);
+                createDirectory(modulePath);
+                createGitkeep(modulePath);
+              }
+            }
           }
         }
       }
@@ -124,7 +131,6 @@ function main() {
   
   // Create base directories
   createDirectory('universities');
-  createDirectory('specializations');
   
   // Create university structure (Tronc commun)
   createUniversityStructure();
@@ -134,18 +140,20 @@ function main() {
   
   console.log('\n✅ New navigation structure created successfully!');
   console.log('\n📁 Folder Structure:');
-  console.log('├── universities/ (Tronc commun)');
+  console.log('├── universities/ (Tronc commun + Spécialité)');
   console.log('│   ├── batna2/');
+  console.log('│   │   ├── semester_1-4/ (Tronc commun)');
+  console.log('│   │   │   └── cour|td|tp|.../');
+  console.log('│   │   └── specializations/');
+  console.log('│   │       └── cese/');
+  console.log('│   │           └── semester_5-6/');
+  console.log('│   │               └── cour|td|tp|.../');
+  console.log('│   │                   └── [Module folders]/');
   console.log('│   ├── setif/');
   console.log('│   ├── usthb/');
   console.log('│   └── constantine1/');
-  console.log('│       └── semester_1-4/');
+  console.log('│       └── semester_1-4/ (Tronc commun only)');
   console.log('│           └── cour|td|tp|.../');
-  console.log('└── specializations/ (Spécialité)');
-  console.log('    └── cese/');
-  console.log('        └── semester_5-6/');
-  console.log('            └── cour|td|tp|.../');
-  console.log('                └── [Module folders]/');
   
   console.log('\n🎯 Next steps:');
   console.log('1. Add files to the appropriate folders');

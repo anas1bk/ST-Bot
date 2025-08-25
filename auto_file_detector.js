@@ -155,86 +155,93 @@ function generateAutomaticFileMapping() {
     }
   }
   
-  // Scan each specialization
+  // Scan specializations for universities that have them
   console.log('\n🎯 Scanning specializations...');
-  for (const specialization of specializations) {
-    console.log(`⚡ Scanning ${specialization}...`);
-    
-    if (!fileMapping[specialization]) {
-      fileMapping[specialization] = {};
-    }
-    
-    // Scan each semester (5 and 6 for specializations)
-    for (let semesterNum = 5; semesterNum <= 6; semesterNum++) {
-      const semesterKey = `semester_${semesterNum}`;
+  for (const university of universities) {
+    // Only scan specializations for universities that have them (currently only batna2)
+    if (university === 'batna2') {
+      console.log(`⚡ Scanning specializations for ${university}...`);
       
-      if (!fileMapping[specialization][semesterKey]) {
-        fileMapping[specialization][semesterKey] = {};
-      }
-      
-      // Scan each resource type
-      for (const resourceType of resourceTypeFolders) {
-        const folderPath = `./specializations/${specialization}/${semesterKey}/${resourceType}`;
+      for (const specialization of specializations) {
+        const specializationKey = `${university}_${specialization}`;
         
-        if (!fs.existsSync(folderPath)) {
-          console.log(`📁 Creating directory: ${folderPath}`);
-          try {
-            fs.mkdirSync(folderPath, { recursive: true });
-          } catch (error) {
-            console.error(`Error creating directory ${folderPath}:`, error);
-          }
-          continue;
+        if (!fileMapping[specializationKey]) {
+          fileMapping[specializationKey] = {};
         }
         
-        const files = scanDirectory(folderPath);
-        
-        if (files.length === 0) {
-          console.log(`📂 No files found in ${folderPath}`);
-          continue;
-        }
-        
-        console.log(`📁 Found ${files.length} files in ${folderPath}`);
-        
-        // Group files by module (folder name or direct files)
-        const moduleFiles = {};
-        
-        files.forEach(file => {
-          const dirParts = path.dirname(file.relativePath).split(path.sep);
-          // specializations/cese/semester_5/cour/ModuleName/file.pdf -> ModuleName
-          // OR specializations/cese/semester_5/cour/file.pdf -> direct file
+        // Scan each semester (5 and 6 for specializations)
+        for (let semesterNum = 5; semesterNum <= 6; semesterNum++) {
+          const semesterKey = `semester_${semesterNum}`;
           
-          let moduleName;
-          if (dirParts.length >= 5) {
-            // File is in a module folder: specializations/cese/semester_5/cour/ModuleName/file.pdf
-            moduleName = dirParts[4]; // Index 4 for ModuleName
-          } else if (dirParts.length >= 4) {
-            // File is directly in resource folder: specializations/cese/semester_5/cour/file.pdf
-            // We'll use the resource type as the module name for direct files
-            moduleName = resourceType;
+          if (!fileMapping[specializationKey][semesterKey]) {
+            fileMapping[specializationKey][semesterKey] = {};
           }
           
-          if (!moduleName) return;
-          
-          if (!moduleFiles[moduleName]) {
-            moduleFiles[moduleName] = [];
+          // Scan each resource type
+          for (const resourceType of resourceTypeFolders) {
+            const folderPath = `./universities/${university}/specializations/${specialization}/${semesterKey}/${resourceType}`;
+            
+            if (!fs.existsSync(folderPath)) {
+              console.log(`📁 Creating directory: ${folderPath}`);
+              try {
+                fs.mkdirSync(folderPath, { recursive: true });
+              } catch (error) {
+                console.error(`Error creating directory ${folderPath}:`, error);
+              }
+              continue;
+            }
+            
+            const files = scanDirectory(folderPath);
+            
+            if (files.length === 0) {
+              console.log(`📂 No files found in ${folderPath}`);
+              continue;
+            }
+            
+            console.log(`📁 Found ${files.length} files in ${folderPath}`);
+            
+            // Group files by module (folder name or direct files)
+            const moduleFiles = {};
+            
+            files.forEach(file => {
+              const dirParts = path.dirname(file.relativePath).split(path.sep);
+              // universities/batna2/specializations/cese/semester_5/cour/ModuleName/file.pdf -> ModuleName
+              // OR universities/batna2/specializations/cese/semester_5/cour/file.pdf -> direct file
+              
+              let moduleName;
+              if (dirParts.length >= 7) {
+                // File is in a module folder: universities/batna2/specializations/cese/semester_5/cour/ModuleName/file.pdf
+                moduleName = dirParts[6]; // Index 6 for ModuleName
+              } else if (dirParts.length >= 6) {
+                // File is directly in resource folder: universities/batna2/specializations/cese/semester_5/cour/file.pdf
+                // We'll use the resource type as the module name for direct files
+                moduleName = resourceType;
+              }
+              
+              if (!moduleName) return;
+              
+              if (!moduleFiles[moduleName]) {
+                moduleFiles[moduleName] = [];
+              }
+              
+              moduleFiles[moduleName].push(file);
+            });
+            
+            // Add module files to fileMapping
+            for (const [moduleName, files] of Object.entries(moduleFiles)) {
+              if (!fileMapping[specializationKey][semesterKey][moduleName]) {
+                fileMapping[specializationKey][semesterKey][moduleName] = {};
+              }
+              
+              fileMapping[specializationKey][semesterKey][moduleName][resourceType] = files.map(file => ({
+                name: file.name,
+                path: file.path.replace(/\\/g, '/'), // Normalize path separators
+                description: file.name.replace(/\.[^/.]+$/, '') // Remove file extension for description
+              }));
+              
+              console.log(`✅ Mapped ${files.length} ${resourceType} files for ${moduleName} (${specializationKey} - ${semesterKey})`);
+            }
           }
-          
-          moduleFiles[moduleName].push(file);
-        });
-        
-        // Add module files to fileMapping
-        for (const [moduleName, files] of Object.entries(moduleFiles)) {
-          if (!fileMapping[specialization][semesterKey][moduleName]) {
-            fileMapping[specialization][semesterKey][moduleName] = {};
-          }
-          
-          fileMapping[specialization][semesterKey][moduleName][resourceType] = files.map(file => ({
-            name: file.name,
-            path: file.path.replace(/\\/g, '/'), // Normalize path separators
-            description: file.name.replace(/\.[^/.]+$/, '') // Remove file extension for description
-          }));
-          
-          console.log(`✅ Mapped ${files.length} ${resourceType} files for ${moduleName} (${specialization} - ${semesterKey})`);
         }
       }
     }
