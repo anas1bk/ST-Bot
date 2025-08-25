@@ -334,6 +334,21 @@ function createFileSelectionKeyboard(files, universityKey, semesterKey, moduleIn
   return createInlineKeyboard(buttons, backButton);
 }
 
+// Helper function to safely edit messages with fallback
+async function safeEditMessage(bot, chatId, messageId, message, keyboard) {
+  try {
+    await bot.editMessageText(message, {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: keyboard
+    });
+  } catch (editError) {
+    console.error('Error editing message:', editError.message);
+    // Fallback: send a new message instead
+    await bot.sendMessage(chatId, message, { reply_markup: keyboard });
+  }
+}
+
 // Command handler for /ing
 bot.onText(/\/ing/, (msg) => {
   const chatId = msg.chat.id;
@@ -904,7 +919,17 @@ bot.on('callback_query', async (query) => {
   
   try {
     // Answer callback query to remove loading state
-    await bot.answerCallbackQuery(query.id);
+    try {
+      await bot.answerCallbackQuery(query.id);
+    } catch (callbackError) {
+      // Ignore "query is too old" errors - this is normal for old callback queries
+      if (callbackError.body && callbackError.body.error_code === 400 && 
+          callbackError.body.description && callbackError.body.description.includes('query is too old')) {
+        console.log('ℹ️ Ignoring old callback query - this is normal behavior');
+      } else {
+        console.error('Error answering callback query:', callbackError.message);
+      }
+    }
     
     let userSession = userSessions.get(chatId) || {
       currentView: 'universities',
@@ -1583,7 +1608,6 @@ bot.on('callback_query', async (query) => {
       } catch (error) {
       console.error('Error handling callback query:', error);
       console.error('Callback data:', data);
-      console.error('User session:', userSession);
       
       // Track performance and error
       const responseTime = Date.now() - startTime;
@@ -1601,11 +1625,17 @@ bot.on('callback_query', async (query) => {
         error.message.includes('Invalid module index') ||
         error.message.includes('Cannot read properties') ||
         error.message.includes('undefined') ||
-        error.message.includes('null')
+        error.message.includes('null') ||
+        error.message.includes('query is too old') ||
+        error.message.includes('Bad Request')
       );
       
       if (!isNavigationError) {
-        await bot.sendMessage(chatId, botConfig.messages.error);
+        try {
+          await bot.sendMessage(chatId, botConfig.messages.error);
+        } catch (sendError) {
+          console.error('Failed to send error message:', sendError.message);
+        }
       } else {
         console.log('ℹ️ Navigation error handled gracefully - no user notification needed');
       }
@@ -1675,13 +1705,17 @@ bot.onText(/\/broadcast/, async (msg) => {
 • Blocked: ${result.blockedCount}
 • Broadcast ID: #${result.broadcastId}`;
       
-      bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+      await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
     } else {
-      bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
+      await bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
     }
   } catch (error) {
     console.error('Broadcast error:', error);
-    bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+    try {
+      await bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+    } catch (sendError) {
+      console.error('Failed to send broadcast error message:', sendError.message);
+    }
   }
 });
 
@@ -1692,13 +1726,13 @@ bot.onText(/\/broadcast_subscribers/, async (msg) => {
   
   // Check if user is admin
   if (userId.toString() !== process.env.BOT_OWNER_ID) {
-    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
+    await bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
     return;
   }
   
   const message = msg.text.replace('/broadcast_subscribers', '').trim();
   if (!message) {
-    bot.sendMessage(chatId, '❌ Please provide a message to broadcast to subscribers.');
+    await bot.sendMessage(chatId, '❌ Please provide a message to broadcast to subscribers.');
     return;
   }
   
@@ -1719,13 +1753,17 @@ bot.onText(/\/broadcast_subscribers/, async (msg) => {
 • Blocked: ${result.blockedCount}
 • Broadcast ID: #${result.broadcastId}`;
       
-      bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+      await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
     } else {
-      bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
+      await bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
     }
   } catch (error) {
     console.error('Broadcast error:', error);
-    bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+    try {
+      await bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+    } catch (sendError) {
+      console.error('Failed to send broadcast error message:', sendError.message);
+    }
   }
 });
 
@@ -1736,13 +1774,13 @@ bot.onText(/\/broadcast_active/, async (msg) => {
   
   // Check if user is admin
   if (userId.toString() !== process.env.BOT_OWNER_ID) {
-    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
+    await bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
     return;
   }
   
   const message = msg.text.replace('/broadcast_active', '').trim();
   if (!message) {
-    bot.sendMessage(chatId, '❌ Please provide a message to broadcast to active users.');
+    await bot.sendMessage(chatId, '❌ Please provide a message to broadcast to active users.');
     return;
   }
   
@@ -1763,13 +1801,17 @@ bot.onText(/\/broadcast_active/, async (msg) => {
 • Blocked: ${result.blockedCount}
 • Broadcast ID: #${result.broadcastId}`;
       
-      bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+      await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
     } else {
-      bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
+      await bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
     }
   } catch (error) {
     console.error('Broadcast error:', error);
-    bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+    try {
+      await bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+    } catch (sendError) {
+      console.error('Failed to send broadcast error message:', sendError.message);
+    }
   }
 });
 
