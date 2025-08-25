@@ -7,6 +7,7 @@ const { navigationStructure, universitiesData, resourceTypes, resourceEmojis, bo
 const { loadFileMapping, generateAutomaticFileMapping } = require('./auto_file_detector');
 const Analytics = require('./analytics');
 const SecurityManager = require('./security');
+const BroadcastSystem = require('./broadcast');
 
 // 🛡️ DEFINITIVE LOCAL RUNNING PREVENTION
 // Basic environment checks before security initialization
@@ -71,6 +72,9 @@ const userSessions = new Map();
 // Initialize security and analytics
 const security = new SecurityManager();
 const analytics = new Analytics(botConfig);
+
+// Initialize broadcast system
+const broadcast = new BroadcastSystem(bot, security, analytics);
 
 // Security validation after initialization
 try {
@@ -334,6 +338,15 @@ function createFileSelectionKeyboard(files, universityKey, semesterKey, moduleIn
 bot.onText(/\/ing/, (msg) => {
   const chatId = msg.chat.id;
   
+  // Register user for broadcast system
+  const userInfo = {
+    first_name: msg.from.first_name,
+    last_name: msg.from.last_name,
+    username: msg.from.username,
+    id: msg.from.id
+  };
+  broadcast.registerUser(msg.from.id, userInfo);
+  
   // Store user session
   userSessions.set(chatId, {
     currentView: 'universities',
@@ -360,13 +373,16 @@ bot.onText(/\/start/, (msg) => {
     return;
   }
   
-  // Track user activity for analytics
+  // Register user for broadcast system
   const userInfo = {
     first_name: msg.from.first_name,
     last_name: msg.from.last_name,
     username: msg.from.username,
     id: msg.from.id
   };
+  broadcast.registerUser(msg.from.id, userInfo);
+  
+  // Track user activity for analytics
   analytics.trackUserActivity(msg.from.id, userInfo, 'command_start');
   
   const welcomeMessage = `🎓 مرحباً بك في بوت الهندسة!
@@ -380,6 +396,9 @@ bot.onText(/\/start/, (msg) => {
 • /about - معلومات عن البوت
 • /send - إرسال ملفات للمطور
 • /help - المساعدة
+
+📢 للحصول على آخر التحديثات والإعلانات المهمة، استخدم:
+• /subscribe - الاشتراك في الإعلانات
 
 أهلاً وسهلاً بك! 🚀`;
   
@@ -395,7 +414,65 @@ bot.onText(/\/start/, (msg) => {
 // Command handler for /help
 bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, botConfig.messages.help);
+  const userId = msg.from.id;
+  
+  // Check if user is admin for extended help
+  const isAdmin = userId.toString() === process.env.BOT_OWNER_ID;
+  
+  if (isAdmin) {
+    const adminHelp = `🎓 **Engineering Bot Help**
+
+**📚 Main Commands:**
+• /ing - القائمة الرئيسية للموارد
+• /start - بدء البوت
+• /help - المساعدة
+• /about - معلومات عن البوت
+
+**📢 Broadcast Commands (Admin Only):**
+• /broadcast [message] - Send to all users
+• /broadcast_subscribers [message] - Send to subscribers only
+• /broadcast_active [message] - Send to active users only
+• /broadcast_stats - Show broadcast statistics
+• /broadcast_history - Show recent broadcasts
+
+**🔧 Admin Commands:**
+• /refresh - Regenerate file mapping
+• /analytics - View real-time analytics
+• /analytics_weekly - Generate weekly report
+• /analytics_monthly - Generate monthly report
+
+**👥 User Commands:**
+• /subscribe - Subscribe to broadcasts
+• /unsubscribe - Unsubscribe from broadcasts
+• /send - إرسال ملفات للمطور
+• /feedback - إرسال ملاحظات
+
+**📊 Examples:**
+• /broadcast 🎉 New files added!
+• /broadcast_subscribers 📚 Important update
+• /analytics - View bot statistics`;
+    
+    bot.sendMessage(chatId, adminHelp, { parse_mode: 'Markdown' });
+  } else {
+    const userHelp = `🎓 **Engineering Bot Help**
+
+**📚 Main Commands:**
+• /ing - القائمة الرئيسية للموارد
+• /start - بدء البوت
+• /help - المساعدة
+• /about - معلومات عن البوت
+
+**👥 User Commands:**
+• /subscribe - Subscribe to broadcasts
+• /unsubscribe - Unsubscribe from broadcasts
+• /send - إرسال ملفات للمطور
+• /feedback - إرسال ملاحظات
+
+**📢 Stay Updated:**
+Use /subscribe to receive important announcements and updates!`;
+    
+    bot.sendMessage(chatId, userHelp, { parse_mode: 'Markdown' });
+  }
 });
 
 // Command handler for /test
@@ -1537,6 +1614,294 @@ bot.on('callback_query', async (query) => {
       const responseTime = Date.now() - startTime;
       analytics.trackPerformance('callback_query', responseTime, true);
     }
+});
+
+// ========================================
+// BROADCAST COMMANDS
+// ========================================
+
+// Command handler for /broadcast (admin only)
+bot.onText(/\/broadcast/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin
+  if (userId.toString() !== process.env.BOT_OWNER_ID) {
+    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
+    return;
+  }
+  
+  const message = msg.text.replace('/broadcast', '').trim();
+  if (!message) {
+    const helpMessage = `📢 **Broadcast System Help**
+
+**Commands:**
+• /broadcast [message] - Send to all users
+• /broadcast_subscribers [message] - Send to subscribers only
+• /broadcast_active [message] - Send to active users only
+• /broadcast_stats - Show broadcast statistics
+• /broadcast_history - Show recent broadcasts
+• /subscribe - Subscribe to broadcasts
+• /unsubscribe - Unsubscribe from broadcasts
+
+**Examples:**
+• /broadcast 🎉 New files added! Check out the latest resources.
+• /broadcast_subscribers 📚 Important update for subscribers only
+• /broadcast_active 🔔 Reminder for active users
+
+**Target Types:**
+• All users: Everyone who has used the bot
+• Subscribers: Users who subscribed to broadcasts
+• Active users: Users active in the last 7 days`;
+    
+    bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
+    return;
+  }
+  
+  try {
+    const result = await broadcast.sendBroadcast(message, {
+      adminId: userId,
+      targetType: 'all',
+      priority: 'normal'
+    });
+    
+    if (result.success) {
+      const response = `✅ **Broadcast sent successfully!**
+
+📊 **Statistics:**
+• Target users: ${result.targetCount}
+• Sent: ${result.sentCount}
+• Failed: ${result.failedCount}
+• Blocked: ${result.blockedCount}
+• Broadcast ID: #${result.broadcastId}`;
+      
+      bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+    } else {
+      bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Broadcast error:', error);
+    bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+  }
+});
+
+// Command handler for /broadcast_subscribers (admin only)
+bot.onText(/\/broadcast_subscribers/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin
+  if (userId.toString() !== process.env.BOT_OWNER_ID) {
+    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
+    return;
+  }
+  
+  const message = msg.text.replace('/broadcast_subscribers', '').trim();
+  if (!message) {
+    bot.sendMessage(chatId, '❌ Please provide a message to broadcast to subscribers.');
+    return;
+  }
+  
+  try {
+    const result = await broadcast.sendBroadcast(message, {
+      adminId: userId,
+      targetType: 'subscribers',
+      priority: 'normal'
+    });
+    
+    if (result.success) {
+      const response = `✅ **Broadcast to subscribers sent successfully!**
+
+📊 **Statistics:**
+• Target subscribers: ${result.targetCount}
+• Sent: ${result.sentCount}
+• Failed: ${result.failedCount}
+• Blocked: ${result.blockedCount}
+• Broadcast ID: #${result.broadcastId}`;
+      
+      bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+    } else {
+      bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Broadcast error:', error);
+    bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+  }
+});
+
+// Command handler for /broadcast_active (admin only)
+bot.onText(/\/broadcast_active/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin
+  if (userId.toString() !== process.env.BOT_OWNER_ID) {
+    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can use broadcast commands.');
+    return;
+  }
+  
+  const message = msg.text.replace('/broadcast_active', '').trim();
+  if (!message) {
+    bot.sendMessage(chatId, '❌ Please provide a message to broadcast to active users.');
+    return;
+  }
+  
+  try {
+    const result = await broadcast.sendBroadcast(message, {
+      adminId: userId,
+      targetType: 'active',
+      priority: 'normal'
+    });
+    
+    if (result.success) {
+      const response = `✅ **Broadcast to active users sent successfully!**
+
+📊 **Statistics:**
+• Target active users: ${result.targetCount}
+• Sent: ${result.sentCount}
+• Failed: ${result.failedCount}
+• Blocked: ${result.blockedCount}
+• Broadcast ID: #${result.broadcastId}`;
+      
+      bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+    } else {
+      bot.sendMessage(chatId, `❌ Broadcast failed: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Broadcast error:', error);
+    bot.sendMessage(chatId, '❌ An error occurred while sending the broadcast.');
+  }
+});
+
+// Command handler for /broadcast_stats (admin only)
+bot.onText(/\/broadcast_stats/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin
+  if (userId.toString() !== process.env.BOT_OWNER_ID) {
+    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can view broadcast statistics.');
+    return;
+  }
+  
+  try {
+    const stats = broadcast.getBroadcastStats();
+    const recentBroadcasts = broadcast.getBroadcastHistory(5);
+    
+    let statsMessage = `📊 **Broadcast Statistics**
+
+👥 **Users:**
+• Total users: ${stats.totalUsers}
+• Subscribers: ${stats.subscribers}
+• Active users (7 days): ${stats.activeUsers}
+
+📢 **Broadcasts:**
+• Total broadcasts: ${stats.broadcastHistory}
+
+⚡ **Rate Limit:**
+• Messages sent this minute: ${stats.rateLimit.messagesSent}/${stats.rateLimit.maxPerMinute}
+• Max per hour: ${stats.rateLimit.maxPerHour}`;
+    
+    if (recentBroadcasts.length > 0) {
+      statsMessage += `\n\n📋 **Recent Broadcasts:**`;
+      recentBroadcasts.forEach(bc => {
+        const date = new Date(bc.timestamp).toLocaleDateString();
+        statsMessage += `\n• #${bc.id} (${date}): ${bc.sentCount}/${bc.targetCount} sent`;
+      });
+    }
+    
+    bot.sendMessage(chatId, statsMessage, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Broadcast stats error:', error);
+    bot.sendMessage(chatId, '❌ An error occurred while fetching broadcast statistics.');
+  }
+});
+
+// Command handler for /broadcast_history (admin only)
+bot.onText(/\/broadcast_history/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin
+  if (userId.toString() !== process.env.BOT_OWNER_ID) {
+    bot.sendMessage(chatId, '🚫 Access denied. Only administrators can view broadcast history.');
+    return;
+  }
+  
+  try {
+    const broadcasts = broadcast.getBroadcastHistory(10);
+    
+    if (broadcasts.length === 0) {
+      bot.sendMessage(chatId, '📋 No broadcast history found.');
+      return;
+    }
+    
+    let historyMessage = `📋 **Broadcast History (Last 10)**
+
+`;
+    
+    broadcasts.forEach(bc => {
+      const date = new Date(bc.timestamp).toLocaleString();
+      const status = bc.status === 'completed' ? '✅' : '⏳';
+      historyMessage += `${status} **#${bc.id}** (${date})
+• Target: ${bc.targetType} (${bc.targetCount} users)
+• Sent: ${bc.sentCount} | Failed: ${bc.failedCount} | Blocked: ${bc.blockedCount}
+• Priority: ${bc.priority}
+• Message: ${bc.message.substring(0, 50)}${bc.message.length > 50 ? '...' : ''}
+
+`;
+    });
+    
+    bot.sendMessage(chatId, historyMessage, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Broadcast history error:', error);
+    bot.sendMessage(chatId, '❌ An error occurred while fetching broadcast history.');
+  }
+});
+
+// Command handler for /subscribe (user command)
+bot.onText(/\/subscribe/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Register user if not already registered
+  const userInfo = {
+    first_name: msg.from.first_name,
+    last_name: msg.from.last_name,
+    username: msg.from.username,
+    id: msg.from.id
+  };
+  broadcast.registerUser(userId, userInfo);
+  
+  const success = broadcast.subscribeUser(userId);
+  
+  if (success) {
+    bot.sendMessage(chatId, `✅ **Successfully subscribed to broadcasts!**
+
+📢 You will now receive important announcements and updates from the bot.
+
+To unsubscribe, use /unsubscribe`);
+  } else {
+    bot.sendMessage(chatId, 'ℹ️ You are already subscribed to broadcasts.');
+  }
+});
+
+// Command handler for /unsubscribe (user command)
+bot.onText(/\/unsubscribe/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  const success = broadcast.unsubscribeUser(userId);
+  
+  if (success) {
+    bot.sendMessage(chatId, `✅ **Successfully unsubscribed from broadcasts.**
+
+📢 You will no longer receive broadcast messages.
+
+To subscribe again, use /subscribe`);
+  } else {
+    bot.sendMessage(chatId, 'ℹ️ You are not subscribed to broadcasts.');
+  }
 });
 
 // Error handling

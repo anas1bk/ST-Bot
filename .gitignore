@@ -16,6 +16,8 @@ bot_token.txt
 logs/
 security-*.log
 analytics_data.json
+broadcast_data.json
+user_data.json
 
 # Node modules
 node_modules/

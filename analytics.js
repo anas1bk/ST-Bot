@@ -485,6 +485,59 @@ class Analytics {
 
     this.saveData();
   }
+
+  // Track broadcast events
+  trackBroadcast(broadcastId, broadcastData) {
+    if (!this.config.analytics.enabled) return;
+
+    const timestamp = new Date().toISOString();
+    
+    if (!this.data.broadcasts) {
+      this.data.broadcasts = {};
+    }
+
+    this.data.broadcasts[broadcastId] = {
+      ...broadcastData,
+      timestamp,
+      successRate: broadcastData.targetCount > 0 ? 
+        (broadcastData.sentCount / broadcastData.targetCount * 100).toFixed(2) : 0
+    };
+
+    // Track broadcast statistics
+    if (!this.data.broadcastStats) {
+      this.data.broadcastStats = {
+        totalBroadcasts: 0,
+        totalSent: 0,
+        totalFailed: 0,
+        averageSuccessRate: 0,
+        targetTypeStats: {}
+      };
+    }
+
+    this.data.broadcastStats.totalBroadcasts++;
+    this.data.broadcastStats.totalSent += broadcastData.sentCount;
+    this.data.broadcastStats.totalFailed += broadcastData.failedCount;
+
+    // Update target type statistics
+    if (!this.data.broadcastStats.targetTypeStats[broadcastData.targetType]) {
+      this.data.broadcastStats.targetTypeStats[broadcastData.targetType] = {
+        count: 0,
+        totalSent: 0,
+        totalFailed: 0
+      };
+    }
+
+    this.data.broadcastStats.targetTypeStats[broadcastData.targetType].count++;
+    this.data.broadcastStats.targetTypeStats[broadcastData.targetType].totalSent += broadcastData.sentCount;
+    this.data.broadcastStats.targetTypeStats[broadcastData.targetType].totalFailed += broadcastData.failedCount;
+
+    // Calculate average success rate
+    const totalTargets = this.data.broadcastStats.totalSent + this.data.broadcastStats.totalFailed;
+    this.data.broadcastStats.averageSuccessRate = totalTargets > 0 ? 
+      (this.data.broadcastStats.totalSent / totalTargets * 100).toFixed(2) : 0;
+
+    this.saveData();
+  }
 }
 
 module.exports = Analytics;
