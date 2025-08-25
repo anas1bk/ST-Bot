@@ -8,8 +8,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// Universities configuration
+// Universities configuration (Tronc commun)
 const universities = ['batna2', 'setif', 'usthb', 'constantine1'];
+
+// Specializations configuration
+const specializations = ['cese'];
 
 // Resource type folders (matching the new structure)
 const resourceTypeFolders = [
@@ -63,11 +66,12 @@ function scanDirectory(dirPath) {
 
 // Function to generate automatic file mapping for multi-university structure
 function generateAutomaticFileMapping() {
-  console.log('🔍 Scanning multi-university directories for automatic file detection...\n');
+  console.log('🔍 Scanning multi-university and specialization directories for automatic file detection...\n');
   
   const fileMapping = {};
   
-  // Scan each university
+  // Scan each university (Tronc commun)
+  console.log('📚 Scanning Tronc commun universities...');
   for (const university of universities) {
     console.log(`🏫 Scanning ${university}...`);
     
@@ -151,6 +155,91 @@ function generateAutomaticFileMapping() {
     }
   }
   
+  // Scan each specialization
+  console.log('\n🎯 Scanning specializations...');
+  for (const specialization of specializations) {
+    console.log(`⚡ Scanning ${specialization}...`);
+    
+    if (!fileMapping[specialization]) {
+      fileMapping[specialization] = {};
+    }
+    
+    // Scan each semester (5 and 6 for specializations)
+    for (let semesterNum = 5; semesterNum <= 6; semesterNum++) {
+      const semesterKey = `semester_${semesterNum}`;
+      
+      if (!fileMapping[specialization][semesterKey]) {
+        fileMapping[specialization][semesterKey] = {};
+      }
+      
+      // Scan each resource type
+      for (const resourceType of resourceTypeFolders) {
+        const folderPath = `./specializations/${specialization}/${semesterKey}/${resourceType}`;
+        
+        if (!fs.existsSync(folderPath)) {
+          console.log(`📁 Creating directory: ${folderPath}`);
+          try {
+            fs.mkdirSync(folderPath, { recursive: true });
+          } catch (error) {
+            console.error(`Error creating directory ${folderPath}:`, error);
+          }
+          continue;
+        }
+        
+        const files = scanDirectory(folderPath);
+        
+        if (files.length === 0) {
+          console.log(`📂 No files found in ${folderPath}`);
+          continue;
+        }
+        
+        console.log(`📁 Found ${files.length} files in ${folderPath}`);
+        
+        // Group files by module (folder name or direct files)
+        const moduleFiles = {};
+        
+        files.forEach(file => {
+          const dirParts = path.dirname(file.relativePath).split(path.sep);
+          // specializations/cese/semester_5/cour/ModuleName/file.pdf -> ModuleName
+          // OR specializations/cese/semester_5/cour/file.pdf -> direct file
+          
+          let moduleName;
+          if (dirParts.length >= 5) {
+            // File is in a module folder: specializations/cese/semester_5/cour/ModuleName/file.pdf
+            moduleName = dirParts[4]; // Index 4 for ModuleName
+          } else if (dirParts.length >= 4) {
+            // File is directly in resource folder: specializations/cese/semester_5/cour/file.pdf
+            // We'll use the resource type as the module name for direct files
+            moduleName = resourceType;
+          }
+          
+          if (!moduleName) return;
+          
+          if (!moduleFiles[moduleName]) {
+            moduleFiles[moduleName] = [];
+          }
+          
+          moduleFiles[moduleName].push(file);
+        });
+        
+        // Add module files to fileMapping
+        for (const [moduleName, files] of Object.entries(moduleFiles)) {
+          if (!fileMapping[specialization][semesterKey][moduleName]) {
+            fileMapping[specialization][semesterKey][moduleName] = {};
+          }
+          
+          fileMapping[specialization][semesterKey][moduleName][resourceType] = files.map(file => ({
+            name: file.name,
+            path: file.path.replace(/\\/g, '/'), // Normalize path separators
+            description: file.name.replace(/\.[^/.]+$/, '') // Remove file extension for description
+          }));
+          
+          console.log(`✅ Mapped ${files.length} ${resourceType} files for ${moduleName} (${specialization} - ${semesterKey})`);
+        }
+      }
+    }
+  }
+  
   return fileMapping;
 }
 
@@ -190,11 +279,15 @@ if (require.main === module) {
     process.exit(1);
   }
   
-  console.log('\n📊 Generated multi-university file mapping summary:');
-  console.log('==================================================');
+  console.log('\n📊 Generated multi-university and specialization file mapping summary:');
+  console.log('=====================================================================');
   
-  for (const [university, semesters] of Object.entries(fileMapping)) {
-    console.log(`\n🏫 ${university}:`);
+  for (const [entity, semesters] of Object.entries(fileMapping)) {
+    const isSpecialization = specializations.includes(entity);
+    const icon = isSpecialization ? '⚡' : '🏫';
+    const type = isSpecialization ? 'Specialization' : 'University';
+    
+    console.log(`\n${icon} ${entity} (${type}):`);
     for (const [semesterKey, modules] of Object.entries(semesters)) {
       console.log(`  📚 ${semesterKey}:`);
       for (const [moduleName, resources] of Object.entries(modules)) {

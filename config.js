@@ -1,245 +1,300 @@
 // Configuration file for Engineering Bot
 // This file contains all the data structures that can be easily updated
 
-// Universities data
-const universitiesData = {
-  'batna2': {
-    name: 'Université Batna 2',
-    displayName: '🏫 Université Batna 2',
-    semesters: {
-      'semester_1': {
-        name: 'Semester 1',
-        modules: [
-          'Analyse 1',
-          'Algèbre 1',
-          'Structure de la matière',
-          'Physique 1',
-          'Probabilités et statistiques',
-          'Informatique 1',
-          'Éthique et déontologie',
-          'Anglais'
-        ]
+// Main navigation structure
+const navigationStructure = {
+  // Tronc commun - existing university system
+  'tronc_commun': {
+    name: 'Tronc commun',
+    displayName: '📚 Tronc commun',
+    description: 'Cours communs des semestres 1 à 4',
+    type: 'university_system',
+    universities: {
+      'batna2': {
+        name: 'Université Batna 2',
+        displayName: '🏫 Université Batna 2',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
       },
-      'semester_2': {
-        name: 'Semester 2',
-        modules: [
-          'Analyse 2',
-          'Algèbre 2',
-          'Physique 2',
-          'Thermodynamique',
-          'Dessin technique',
-          'Informatique 2',
-          'Anglais',
-          'Les métiers de l\'ingénieur'
-        ]
+      'setif': {
+        name: 'Université Setif',
+        displayName: '🏫 Université Setif',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
       },
-      'semester_3': {
-        name: 'Semester 3',
-        modules: [
-          'Analyse 3',
-          'Analyse numérique 1',
-          'Ondes et vibrations',
-          'Mécanique des fluides',
-          'Mécanique rationnelle',
-          'Informatique 3',
-          'DAO',
-          'Anglais technique'
-        ]
+      'usthb': {
+        name: 'USTHB',
+        displayName: '🏫 USTHB',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
       },
-      'semester_4': {
-        name: 'Semester 4',
-        modules: [
-          'Analyse numérique 2',
-          'Résistance des matériaux',
-          'Electronique fondamentale',
-          'Electricité fondamentale',
-          'Théorie du signal',
-          'Mesure et métrologie',
-          'Informatique 4',
-          'Conception Assistée par Ordinateur',
-          'Techniques d\'expression, d\'information et de communication'
-        ]
+      'constantine1': {
+        name: 'Université Constantine 1',
+        displayName: '🏫 Université Constantine 1',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
       }
     }
   },
-  'setif': {
-    name: 'Université Setif',
-    displayName: '🏫 Université Setif',
-    semesters: {
-      'semester_1': {
-        name: 'Semester 1',
-        modules: [
-          'Analyse 1',
-          'Algèbre 1',
-          'Structure de la matière',
-          'Physique 1',
-          'Probabilités et statistiques',
-          'Informatique 1',
-          'Éthique et déontologie',
-          'Anglais'
-        ]
-      },
-      'semester_2': {
-        name: 'Semester 2',
-        modules: [
-          'Analyse 2',
-          'Algèbre 2',
-          'Physique 2',
-          'Thermodynamique',
-          'Dessin technique',
-          'Informatique 2',
-          'Anglais',
-          'Les métiers de l\'ingénieur'
-        ]
-      },
-      'semester_3': {
-        name: 'Semester 3',
-        modules: [
-          'Analyse 3',
-          'Analyse numérique 1',
-          'Ondes et vibrations',
-          'Mécanique des fluides',
-          'Mécanique rationnelle',
-          'Informatique 3',
-          'DAO',
-          'Anglais technique'
-        ]
-      },
-      'semester_4': {
-        name: 'Semester 4',
-        modules: [
-          'Analyse numérique 2',
-          'Résistance des matériaux',
-          'Electronique fondamentale',
-          'Electricité fondamentale',
-          'Théorie du signal',
-          'Mesure et métrologie',
-          'Informatique 4',
-          'Conception Assistée par Ordinateur',
-          'Techniques d\'expression, d\'information et de communication'
-        ]
-      }
-    }
-  },
-  'usthb': {
-    name: 'USTHB',
-    displayName: '🏫 USTHB',
-    semesters: {
-      'semester_1': {
-        name: 'Semester 1',
-        modules: [
-          'Analyse 1',
-          'Algèbre 1',
-          'Structure de la matière',
-          'Physique 1',
-          'Probabilités et statistiques',
-          'Informatique 1',
-          'Éthique et déontologie',
-          'Anglais'
-        ]
-      },
-      'semester_2': {
-        name: 'Semester 2',
-        modules: [
-          'Analyse 2',
-          'Algèbre 2',
-          'Physique 2',
-          'Thermodynamique',
-          'Dessin technique',
-          'Informatique 2',
-          'Anglais',
-          'Les métiers de l\'ingénieur'
-        ]
-      },
-      'semester_3': {
-        name: 'Semester 3',
-        modules: [
-          'Analyse 3',
-          'Analyse numérique 1',
-          'Ondes et vibrations',
-          'Mécanique des fluides',
-          'Mécanique rationnelle',
-          'Informatique 3',
-          'DAO',
-          'Anglais technique'
-        ]
-      },
-      'semester_4': {
-        name: 'Semester 4',
-        modules: [
-          'Analyse numérique 2',
-          'Résistance des matériaux',
-          'Electronique fondamentale',
-          'Electricité fondamentale',
-          'Théorie du signal',
-          'Mesure et métrologie',
-          'Informatique 4',
-          'Conception Assistée par Ordinateur',
-          'Techniques d\'expression, d\'information et de communication'
-        ]
-      }
-    }
-  },
-  'constantine1': {
-    name: 'Université Constantine 1',
-    displayName: '🏫 Université Constantine 1',
-    semesters: {
-      'semester_1': {
-        name: 'Semester 1',
-        modules: [
-          'Analyse 1',
-          'Algèbre 1',
-          'Structure de la matière',
-          'Physique 1',
-          'Probabilités et statistiques',
-          'Informatique 1',
-          'Éthique et déontologie',
-          'Anglais'
-        ]
-      },
-      'semester_2': {
-        name: 'Semester 2',
-        modules: [
-          'Analyse 2',
-          'Algèbre 2',
-          'Physique 2',
-          'Thermodynamique',
-          'Dessin technique',
-          'Informatique 2',
-          'Anglais',
-          'Les métiers de l\'ingénieur'
-        ]
-      },
-      'semester_3': {
-        name: 'Semester 3',
-        modules: [
-          'Analyse 3',
-          'Analyse numérique 1',
-          'Ondes et vibrations',
-          'Mécanique des fluides',
-          'Mécanique rationnelle',
-          'Informatique 3',
-          'DAO',
-          'Anglais technique'
-        ]
-      },
-      'semester_4': {
-        name: 'Semester 4',
-        modules: [
-          'Analyse numérique 2',
-          'Résistance des matériaux',
-          'Electronique fondamentale',
-          'Electricité fondamentale',
-          'Théorie du signal',
-          'Mesure et métrologie',
-          'Informatique 4',
-          'Conception Assistée par Ordinateur',
-          'Techniques d\'expression, d\'information et de communication'
-        ]
+  
+  // Spécialité - new specialization system
+  'specialite': {
+    name: 'Spécialité',
+    displayName: '🎯 Spécialité',
+    description: 'Spécialisations et cours avancés',
+    type: 'specialization_system',
+    specializations: {
+      'cese': {
+        name: 'CESE',
+        displayName: '⚡ CESE (Contrôle et Systèmes Embarqués)',
+        description: 'Spécialisation en Contrôle et Systèmes Embarqués',
+        semesters: {
+          'semester_5': {
+            name: 'Semester 5',
+            modules: [
+              'Electrotechnique fondamentale',
+              'Théorie de champ',
+              'Electronique de puissance',
+              'Transfert thermique',
+              'Asservissements 1',
+              'Logique combinatoire et séquentielle',
+              'Méthodes numériques appliqués-Python',
+              'Anglais technique'
+            ]
+          },
+          'semester_6': {
+            name: 'Semester 6',
+            modules: [
+              'Conversion d\'énergie',
+              'Actionneurs et Capteurs',
+              'Introduction aux systèmes embarqués',
+              'Asservissement 2',
+              'Traitement de signal',
+              'Prévisions et décisions statistiques',
+              'Programmation en C et réseaux de communication',
+              'Entrepreneuriat et management d\'entreprise'
+            ]
+          }
+        }
       }
     }
   }
 };
+
+// Legacy universitiesData for backward compatibility (will be removed later)
+const universitiesData = navigationStructure.tronc_commun.universities;
 
 // Legacy semesterData for backward compatibility (will be removed later)
 const semesterData = {
@@ -446,8 +501,11 @@ const botConfig = {
   
   // Messages
   messages: {
-    welcome: '🎓 Welcome to Engineering Resources!\n\nPlease select a university:',
+    welcome: '🎓 Welcome to Engineering Resources!\n\nPlease select your path:',
+    troncCommun: '📚 Tronc commun\n\nCours communs des semestres 1 à 4\n\nPlease select a university:',
+    specialite: '🎯 Spécialité\n\nSpécialisations et cours avancés\n\nPlease select a specialization:',
     universitySemesters: '🏫 {universityName}\n\nPlease select a semester:',
+    specializationSemesters: '⚡ {specializationName}\n\nPlease select a semester:',
     semesterModules: '📚 {semesterName} Modules:\n\nSelect a module:',
     moduleResources: '📖 {moduleName}\n\nSelect resource type:',
     resourceComingSoon: '{emoji} {resourceName} for {moduleName}\n\nThis feature is coming soon! 🚀',
@@ -457,18 +515,22 @@ const botConfig = {
     help: `🤖 Engineering Bot Help
 
 الأوامر:
-/ing  تشغيل البوت واختيار الجامعة
+/ing  تشغيل البوت واختيار المسار
 /help  عرض رسالة المساعدة
 /feedback  إرسال ملاحظات أو اقتراحات
 /send  إرسال ملفات للمشاركة
 
+المسارات:
+📚 Tronc commun - Cours communs des semestres 1 à 4
+🎯 Spécialité - Spécialisations et cours avancés
+
 التنقّل:
-• استخدم الأزرار المدمجة للتنقّل بين الجامعات، الفصول، الوحدات، وأنواع الموارد
+• استخدم الأزرار المدمجة للتنقّل بين المسارات، الجامعات، الفصول، الوحدات، وأنواع الموارد
 • استخدم زر «رجوع» للعودة إلى القوائم السابقة
 • البوت يتذكر موقعك الحالي أثناء التنقّل
 
 الميزات:
-• تصفّح موارد الهندسة حسب الجامعة والفصل الدراسي والوحدة
+• تصفّح موارد الهندسة حسب المسار والجامعة والفصل الدراسي والوحدة
 • الوصول إلى أنواع مختلفة من الموارد (دروس، أعمال موجهة، أعمال تطبيقية، إلخ)
 • إرسال ملاحظات إلى قناة خاصة
 • مشاركة ملفات مع الطلاب الآخرين
@@ -478,7 +540,11 @@ const botConfig = {
   
   // Button texts
   buttons: {
+    backToMainMenu: '⬅️ Back to Main Menu',
+    backToTroncCommun: '⬅️ Back to Tronc commun',
+    backToSpecialite: '⬅️ Back to Spécialité',
     backToUniversities: '⬅️ Back to Universities',
+    backToSpecializations: '⬅️ Back to Specializations',
     backToSemesters: '⬅️ Back to Semesters',
     backToModules: '⬅️ Back to Modules',
     backToResourceTypes: '⬅️ Back to Resource Types'
@@ -486,6 +552,7 @@ const botConfig = {
 };
 
 module.exports = {
+  navigationStructure,
   universitiesData,
   semesterData, // Legacy support
   resourceTypes,

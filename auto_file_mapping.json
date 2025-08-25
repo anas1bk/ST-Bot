@@ -16,6 +16,11 @@
       "Analyse 3": {
         "cour": [
           {
+            "name": "Cours Analyse 3.pdf",
+            "path": "universities/batna2/semester_3/cour/Analyse 3/Cours Analyse 3.pdf",
+            "description": "Cours Analyse 3"
+          },
+          {
             "name": "test_analyse3.pdf",
             "path": "universities/batna2/semester_3/cour/Analyse 3/test_analyse3.pdf",
             "description": "test_analyse3"
@@ -23,7 +28,47 @@
         ]
       }
     },
-    "semester_4": {}
+    "semester_4": {
+      "Résistance des matériaux": {
+        "cour": [
+          {
+            "name": "cisaillement simple.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/cisaillement simple.pdf",
+            "description": "cisaillement simple"
+          },
+          {
+            "name": "Flexion composée.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/Flexion composée.pdf",
+            "description": "Flexion composée"
+          },
+          {
+            "name": "Flexion deviee.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/Flexion deviee.pdf",
+            "description": "Flexion deviee"
+          },
+          {
+            "name": "Flexion pure.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/Flexion pure.pdf",
+            "description": "Flexion pure"
+          },
+          {
+            "name": "Généralités.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/Généralités.pdf",
+            "description": "Généralités"
+          },
+          {
+            "name": "La torsion simple.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/La torsion simple.pdf",
+            "description": "La torsion simple"
+          },
+          {
+            "name": "Traction et compression.pdf",
+            "path": "universities/batna2/semester_4/cour/Résistance des matériaux/Traction et compression.pdf",
+            "description": "Traction et compression"
+          }
+        ]
+      }
+    }
   },
   "setif": {
     "semester_1": {},
@@ -52,5 +97,9 @@
     "semester_2": {},
     "semester_3": {},
     "semester_4": {}
+  },
+  "cese": {
+    "semester_5": {},
+    "semester_6": {}
   }
 }

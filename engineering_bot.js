@@ -3,7 +3,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
-const { universitiesData, resourceTypes, resourceEmojis, botConfig } = require('./config');
+const { navigationStructure, universitiesData, resourceTypes, resourceEmojis, botConfig } = require('./config');
 const { loadFileMapping, generateAutomaticFileMapping } = require('./auto_file_detector');
 const Analytics = require('./analytics');
 const SecurityManager = require('./security');
@@ -137,6 +137,22 @@ function createInlineKeyboard(buttons, backButton = null) {
   };
 }
 
+// Helper function to get main menu keyboard
+function getMainMenuKeyboard() {
+  const buttons = [
+    {
+      text: navigationStructure.tronc_commun.displayName,
+      callback_data: 'path_tronc_commun'
+    },
+    {
+      text: navigationStructure.specialite.displayName,
+      callback_data: 'path_specialite'
+    }
+  ];
+  
+  return createInlineKeyboard(buttons);
+}
+
 // Helper function to get university selection keyboard
 function getUniversityKeyboard() {
   const buttons = Object.keys(universitiesData).map(universityKey => ({
@@ -144,7 +160,12 @@ function getUniversityKeyboard() {
     callback_data: `university_${universityKey}`
   }));
   
-  return createInlineKeyboard(buttons);
+  const backButton = {
+    text: botConfig.buttons.backToMainMenu,
+    callback_data: 'back_to_main_menu'
+  };
+  
+  return createInlineKeyboard(buttons, backButton);
 }
 
 // Helper function to get semester selection keyboard for a university
@@ -179,11 +200,69 @@ function getModulesKeyboard(universityKey, semesterKey) {
   return createInlineKeyboard(buttons, backButton);
 }
 
+// Helper function to get specialization selection keyboard
+function getSpecializationKeyboard() {
+  const specializations = navigationStructure.specialite.specializations;
+  const buttons = Object.keys(specializations).map(specKey => ({
+    text: specializations[specKey].displayName,
+    callback_data: `specialization_${specKey}`
+  }));
+  
+  const backButton = {
+    text: botConfig.buttons.backToMainMenu,
+    callback_data: 'back_to_main_menu'
+  };
+  
+  return createInlineKeyboard(buttons, backButton);
+}
+
+// Helper function to get semester selection keyboard for a specialization
+function getSpecializationSemesterKeyboard(specKey) {
+  const semesters = navigationStructure.specialite.specializations[specKey].semesters;
+  const buttons = Object.keys(semesters).map(semesterKey => ({
+    text: semesters[semesterKey].name,
+    callback_data: `spec_semester_${specKey}_${semesterKey}`
+  }));
+  
+  const backButton = {
+    text: botConfig.buttons.backToSpecializations,
+    callback_data: 'back_to_specializations'
+  };
+  
+  return createInlineKeyboard(buttons, backButton);
+}
+
+// Helper function to get modules keyboard for a specialization semester
+function getSpecializationModulesKeyboard(specKey, semesterKey) {
+  const modules = navigationStructure.specialite.specializations[specKey].semesters[semesterKey].modules;
+  const buttons = modules.map((module, index) => ({
+    text: module,
+    callback_data: `spec_mod_${specKey}_${semesterKey}_${index}`
+  }));
+  
+  const backButton = {
+    text: botConfig.buttons.backToSemesters,
+    callback_data: `back_to_spec_semesters_${specKey}`
+  };
+  
+  return createInlineKeyboard(buttons, backButton);
+}
+
 // Helper function to get resource types keyboard
 function getResourceTypesKeyboard(universityKey, semesterKey, moduleIndex) {
   const backButton = {
     text: botConfig.buttons.backToModules,
     callback_data: `back_to_modules_${universityKey}_${semesterKey}`
+  };
+  
+  return createInlineKeyboard(resourceTypes, backButton);
+}
+
+// Helper function to get resource types keyboard for specialization
+function getSpecializationResourceTypesKeyboard(specKey, semesterKey, moduleIndex) {
+  const backButton = {
+    text: botConfig.buttons.backToModules,
+    callback_data: `back_to_spec_modules_${specKey}_${semesterKey}`
   };
   
   return createInlineKeyboard(resourceTypes, backButton);
@@ -252,13 +331,15 @@ bot.onText(/\/ing/, (msg) => {
   
   // Store user session
   userSessions.set(chatId, {
-    currentView: 'universities',
+    currentView: 'main_menu',
+    selectedPath: null,
     selectedUniversity: null,
     selectedSemester: null,
-    selectedModule: null
+    selectedModule: null,
+    selectedSpecialization: null
   });
   
-  const keyboard = getUniversityKeyboard();
+  const keyboard = getMainMenuKeyboard();
   
   bot.sendMessage(chatId, botConfig.messages.welcome, {
     reply_markup: keyboard
@@ -745,14 +826,50 @@ bot.on('callback_query', async (query) => {
     await bot.answerCallbackQuery(query.id);
     
     let userSession = userSessions.get(chatId) || {
-      currentView: 'universities',
+      currentView: 'main_menu',
+      selectedPath: null,
       selectedUniversity: null,
       selectedSemester: null,
-      selectedModule: null
+      selectedModule: null,
+      selectedSpecialization: null
     };
     console.log(`Processing callback: ${data} for chat ${chatId}`);
     
-    if (data.startsWith('university_')) {
+    if (data.startsWith('path_')) {
+      // Path selection (Tronc commun or Spécialité)
+      const pathKey = data.replace('path_', '');
+      console.log(`Selected path: ${pathKey}`);
+      
+      if (pathKey === 'tronc_commun') {
+        // Tronc commun path - show universities
+        userSession.selectedPath = 'tronc_commun';
+        userSession.currentView = 'universities';
+        userSessions.set(chatId, userSession);
+        
+        const keyboard = getUniversityKeyboard();
+        
+        await bot.editMessageText(botConfig.messages.troncCommun, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: keyboard
+        });
+        
+      } else if (pathKey === 'specialite') {
+        // Spécialité path - show specializations
+        userSession.selectedPath = 'specialite';
+        userSession.currentView = 'specializations';
+        userSessions.set(chatId, userSession);
+        
+        const keyboard = getSpecializationKeyboard();
+        
+        await bot.editMessageText(botConfig.messages.specialite, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: keyboard
+        });
+      }
+      
+    } else if (data.startsWith('university_')) {
       // University selection
       const universityKey = data.replace('university_', '');
       console.log(`Selected university: ${universityKey}`);
@@ -860,24 +977,152 @@ bot.on('callback_query', async (query) => {
         reply_markup: keyboard
       });
       
+    } else if (data.startsWith('specialization_')) {
+      // Specialization selection
+      const specKey = data.replace('specialization_', '');
+      console.log(`Selected specialization: ${specKey}`);
+      
+      if (!navigationStructure.specialite.specializations[specKey]) {
+        throw new Error(`Invalid specialization key: ${specKey}`);
+      }
+      
+      userSession.selectedSpecialization = specKey;
+      userSession.currentView = 'spec_semesters';
+      userSessions.set(chatId, userSession);
+      
+      const specializationName = navigationStructure.specialite.specializations[specKey].name;
+      const message = formatMessage(botConfig.messages.specializationSemesters, { specializationName });
+      const keyboard = getSpecializationSemesterKeyboard(specKey);
+      
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
+      
+    } else if (data.startsWith('spec_semester_')) {
+      // Specialization semester selection
+      const parts = data.split('_');
+      console.log(`Specialization semester callback parts:`, parts);
+      
+      if (parts.length < 4) {
+        console.log(`Invalid specialization semester callback data: ${data}`);
+        return;
+      }
+      
+      // Format: spec_semester_cese_semester_5
+      const specKey = parts[2];
+      const semesterKey = `${parts[3]}_${parts[4]}`; // semester_5
+      
+      console.log(`Selected specialization semester - spec: ${specKey}, semester: ${semesterKey}`);
+      
+      if (!navigationStructure.specialite.specializations[specKey] || 
+          !navigationStructure.specialite.specializations[specKey].semesters[semesterKey]) {
+        console.log(`Invalid specialization or semester key: ${specKey}, ${semesterKey}`);
+        return;
+      }
+      
+      userSession.selectedSemester = semesterKey;
+      userSession.currentView = 'spec_modules';
+      userSessions.set(chatId, userSession);
+      
+      const semesterName = navigationStructure.specialite.specializations[specKey].semesters[semesterKey].name;
+      const message = formatMessage(botConfig.messages.semesterModules, { semesterName });
+      const keyboard = getSpecializationModulesKeyboard(specKey, semesterKey);
+      
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
+      
+    } else if (data.startsWith('spec_mod_')) {
+      // Specialization module selection
+      const parts = data.split('_');
+      console.log(`Specialization module callback parts:`, parts);
+      
+      if (parts.length < 5) {
+        console.log(`Invalid specialization module callback data: ${data}`);
+        return;
+      }
+      
+      // Format: spec_mod_cese_semester_5_4 (spec_mod_specKey_semesterKey_index)
+      const specKey = parts[2];
+      const semesterKey = `${parts[3]}_${parts[4]}`; // semester_5
+      const moduleIndex = parseInt(parts[5]);
+      
+      console.log(`Parsed specKey: ${specKey}, semesterKey: ${semesterKey}, moduleIndex: ${moduleIndex}`);
+      
+      if (!navigationStructure.specialite.specializations[specKey] || 
+          !navigationStructure.specialite.specializations[specKey].semesters[semesterKey]) {
+        console.log(`Invalid specialization or semester key: ${specKey}, ${semesterKey}`);
+        return;
+      }
+      
+      if (moduleIndex < 0 || moduleIndex >= navigationStructure.specialite.specializations[specKey].semesters[semesterKey].modules.length) {
+        console.log(`Invalid module index: ${moduleIndex} for semester ${semesterKey}`);
+        return;
+      }
+      
+      userSession.selectedModule = moduleIndex;
+      userSession.currentView = 'spec_resources';
+      userSessions.set(chatId, userSession);
+      
+      const moduleName = navigationStructure.specialite.specializations[specKey].semesters[semesterKey].modules[moduleIndex];
+      const message = formatMessage(botConfig.messages.moduleResources, { moduleName });
+      const keyboard = getSpecializationResourceTypesKeyboard(specKey, semesterKey, moduleIndex);
+      
+      // Track module view for analytics
+      const userInfo = {
+        first_name: query.from.first_name,
+        last_name: query.from.last_name,
+        username: query.from.username,
+        id: query.from.id
+      };
+      analytics.trackModuleView(moduleName, specKey, semesterKey, query.from.id, userInfo);
+      
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
+      
     } else if (data.startsWith('resource_')) {
       // Resource type selection
       const resourceType = data.replace('resource_', '');
       const universityKey = userSession.selectedUniversity;
       const semesterKey = userSession.selectedSemester;
       const moduleIndex = userSession.selectedModule;
+      const specKey = userSession.selectedSpecialization;
       
-      if (!universityKey || !semesterKey || moduleIndex === null || moduleIndex === undefined) {
-        console.log('No university, semester or module selected');
-        return;
+      // Handle both regular and specialization paths
+      let moduleName, files, keyboard, backCallbackData;
+      
+      if (specKey) {
+        // Specialization path
+        if (!specKey || !semesterKey || moduleIndex === null || moduleIndex === undefined) {
+          console.log('No specialization, semester or module selected');
+          return;
+        }
+        
+        moduleName = navigationStructure.specialite.specializations[specKey].semesters[semesterKey].modules[moduleIndex];
+        files = getFilesForResource(specKey, semesterKey, moduleName, resourceType);
+        backCallbackData = `spec_mod_${specKey}_${semesterKey}_${moduleIndex}`;
+        
+      } else {
+        // Regular university path
+        if (!universityKey || !semesterKey || moduleIndex === null || moduleIndex === undefined) {
+          console.log('No university, semester or module selected');
+          return;
+        }
+        
+        moduleName = universitiesData[universityKey].semesters[semesterKey].modules[moduleIndex];
+        files = getFilesForResource(universityKey, semesterKey, moduleName, resourceType);
+        backCallbackData = `mod_${universityKey}_${semesterKey}_${moduleIndex}`;
       }
       
-      const moduleName = universitiesData[universityKey].semesters[semesterKey].modules[moduleIndex];
       const emoji = resourceEmojis[resourceType] || '📄';
       const resourceName = resourceType.charAt(0).toUpperCase() + resourceType.slice(1).replace('_', ' ');
-      
-      // Check if files are available for this resource type
-      const files = getFilesForResource(universityKey, semesterKey, moduleName, resourceType);
       
       if (files && files.length > 0) {
         // Files are available - show file selection
@@ -887,7 +1132,23 @@ bot.on('callback_query', async (query) => {
           moduleName
         });
         
-        const keyboard = createFileSelectionKeyboard(files, universityKey, semesterKey, moduleIndex, resourceType);
+        if (specKey) {
+          // Specialization file selection keyboard
+          const buttons = files.map((file, index) => ({
+            text: `${file.name}`,
+            callback_data: `spec_file_${specKey}_${semesterKey}_${moduleIndex}_${resourceType}_${index}`
+          }));
+          
+          const backButton = {
+            text: botConfig.buttons.backToResourceTypes,
+            callback_data: backCallbackData
+          };
+          
+          keyboard = createInlineKeyboard(buttons, backButton);
+        } else {
+          // Regular file selection keyboard
+          keyboard = createFileSelectionKeyboard(files, universityKey, semesterKey, moduleIndex, resourceType);
+        }
         
         await bot.editMessageText(message, {
           chat_id: chatId,
@@ -909,12 +1170,30 @@ bot.on('callback_query', async (query) => {
             inline_keyboard: [[
               {
                 text: botConfig.buttons.backToResourceTypes,
-                callback_data: `mod_${universityKey}_${semesterKey}_${moduleIndex}`
+                callback_data: backCallbackData
               }
             ]]
           }
         });
       }
+      
+    } else if (data === 'back_to_main_menu') {
+      // Back to main menu
+      userSession.currentView = 'main_menu';
+      userSession.selectedPath = null;
+      userSession.selectedUniversity = null;
+      userSession.selectedSemester = null;
+      userSession.selectedModule = null;
+      userSession.selectedSpecialization = null;
+      userSessions.set(chatId, userSession);
+      
+      const keyboard = getMainMenuKeyboard();
+      
+      await bot.editMessageText(botConfig.messages.welcome, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
       
     } else if (data === 'back_to_universities') {
       // Back to universities
@@ -926,7 +1205,7 @@ bot.on('callback_query', async (query) => {
       
       const keyboard = getUniversityKeyboard();
       
-      await bot.editMessageText(botConfig.messages.welcome, {
+      await bot.editMessageText(botConfig.messages.troncCommun, {
         chat_id: chatId,
         message_id: query.message.message_id,
         reply_markup: keyboard
@@ -950,6 +1229,74 @@ bot.on('callback_query', async (query) => {
       const universityName = universitiesData[universityKey].name;
       const message = formatMessage(botConfig.messages.universitySemesters, { universityName });
       const keyboard = getSemesterKeyboard(universityKey);
+      
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
+      
+    } else if (data === 'back_to_specializations') {
+      // Back to specializations
+      userSession.currentView = 'specializations';
+      userSession.selectedSpecialization = null;
+      userSession.selectedSemester = null;
+      userSession.selectedModule = null;
+      userSessions.set(chatId, userSession);
+      
+      const keyboard = getSpecializationKeyboard();
+      
+      await bot.editMessageText(botConfig.messages.specialite, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
+      
+    } else if (data.startsWith('back_to_spec_semesters_')) {
+      // Back to specialization semesters
+      const specKey = data.replace('back_to_spec_semesters_', '');
+      console.log(`Back to specialization semesters for spec: ${specKey}`);
+      
+      if (!navigationStructure.specialite.specializations[specKey]) {
+        console.log(`Invalid specialization key for back button: ${specKey}`);
+        return;
+      }
+      
+      userSession.currentView = 'spec_semesters';
+      userSession.selectedSemester = null;
+      userSession.selectedModule = null;
+      userSessions.set(chatId, userSession);
+      
+      const specializationName = navigationStructure.specialite.specializations[specKey].name;
+      const message = formatMessage(botConfig.messages.specializationSemesters, { specializationName });
+      const keyboard = getSpecializationSemesterKeyboard(specKey);
+      
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
+      
+    } else if (data.startsWith('back_to_spec_modules_')) {
+      // Back to specialization modules
+      const parts = data.replace('back_to_spec_modules_', '').split('_');
+      const specKey = parts[0];
+      const semesterKey = `${parts[1]}_${parts[2]}`; // semester_5
+      console.log(`Back to specialization modules for spec: ${specKey}, semester: ${semesterKey}`);
+      
+      if (!navigationStructure.specialite.specializations[specKey] || 
+          !navigationStructure.specialite.specializations[specKey].semesters[semesterKey]) {
+        console.log(`Invalid specialization or semester key for back button: ${specKey}, ${semesterKey}`);
+        return;
+      }
+      
+      userSession.currentView = 'spec_modules';
+      userSession.selectedModule = null;
+      userSessions.set(chatId, userSession);
+      
+      const semesterName = navigationStructure.specialite.specializations[specKey].semesters[semesterKey].name;
+      const message = formatMessage(botConfig.messages.semesterModules, { semesterName });
+      const keyboard = getSpecializationModulesKeyboard(specKey, semesterKey);
       
       await bot.editMessageText(message, {
         chat_id: chatId,
@@ -983,29 +1330,50 @@ bot.on('callback_query', async (query) => {
         reply_markup: keyboard
       });
       
-    } else if (data.startsWith('file_')) {
+    } else if (data.startsWith('file_') || data.startsWith('spec_file_')) {
       // File selection - send the actual file
       const parts = data.split('_');
-      if (parts.length < 7) {
-        console.log(`Invalid file callback data: ${data}`);
-        return;
+      let universityKey, semesterKey, moduleIndex, resourceType, fileIndex, moduleName, files, file;
+      
+      if (data.startsWith('spec_file_')) {
+        // Specialization file
+        if (parts.length < 7) {
+          console.log(`Invalid specialization file callback data: ${data}`);
+          return;
+        }
+        
+        const specKey = parts[2];
+        semesterKey = `${parts[3]}_${parts[4]}`; // semester_5
+        moduleIndex = parseInt(parts[5]);
+        resourceType = parts[6];
+        fileIndex = parseInt(parts[7]);
+        
+        moduleName = navigationStructure.specialite.specializations[specKey].semesters[semesterKey].modules[moduleIndex];
+        files = getFilesForResource(specKey, semesterKey, moduleName, resourceType);
+        
+      } else {
+        // Regular file
+        if (parts.length < 7) {
+          console.log(`Invalid file callback data: ${data}`);
+          return;
+        }
+        
+        universityKey = parts[1];
+        semesterKey = `${parts[2]}_${parts[3]}`; // semester_1
+        moduleIndex = parseInt(parts[4]);
+        resourceType = parts[5];
+        fileIndex = parseInt(parts[6]);
+        
+        moduleName = universitiesData[universityKey].semesters[semesterKey].modules[moduleIndex];
+        files = getFilesForResource(universityKey, semesterKey, moduleName, resourceType);
       }
-      
-      const universityKey = parts[1];
-      const semesterKey = `${parts[2]}_${parts[3]}`; // semester_1
-      const moduleIndex = parseInt(parts[4]);
-      const resourceType = parts[5];
-      const fileIndex = parseInt(parts[6]);
-      
-      const moduleName = universitiesData[universityKey].semesters[semesterKey].modules[moduleIndex];
-      const files = getFilesForResource(universityKey, semesterKey, moduleName, resourceType);
       
       if (!files || !files[fileIndex]) {
         console.log(`File not found: ${data}`);
         return;
       }
       
-      const file = files[fileIndex];
+      file = files[fileIndex];
       
       try {
         // Security validation for file download
