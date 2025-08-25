@@ -95,7 +95,7 @@ class SecurityManager {
     const key = crypto.randomBytes(32);
     const iv = crypto.randomBytes(16);
     
-    const cipher = crypto.createCipher(algorithm, key);
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
     let encrypted = cipher.update(token, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     
@@ -119,7 +119,7 @@ class SecurityManager {
       const iv = Buffer.from(this.encryptedToken.iv, 'hex');
       const tag = Buffer.from(this.encryptedToken.tag, 'hex');
       
-      const decipher = crypto.createDecipher(algorithm, key);
+      const decipher = crypto.createDecipheriv(algorithm, key, iv);
       decipher.setAuthTag(tag);
       
       let decrypted = decipher.update(this.encryptedToken.encrypted, 'hex', 'utf8');

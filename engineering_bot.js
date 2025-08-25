@@ -9,72 +9,45 @@ const Analytics = require('./analytics');
 const SecurityManager = require('./security');
 
 // 🛡️ DEFINITIVE LOCAL RUNNING PREVENTION
-// Initialize security validation
-let secureToken = null;
-
-try {
-  // Check 1: Environment validation
-  if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
-    security.logSecurityEvent('ENVIRONMENT_BLOCKED', 'NODE_ENV must be "production"', 'CRITICAL');
-    console.log('🚫 BOT BLOCKED: This bot can only run in production environment');
-    console.log('🚫 Local running is completely disabled for security');
-    console.log('🚫 Deploy to Render or another hosting service to use this bot');
-    process.exit(1);
-  }
-
-  // Check 2: Hosting service detection
-  const hostingServices = [
-    'RENDER_EXTERNAL_URL',
-    'HEROKU_APP_NAME', 
-    'RAILWAY_STATIC_URL',
-    'VERCEL_URL',
-    'NETLIFY_URL',
-    'FLY_APP_NAME',
-    'DIGITALOCEAN_APP_PLATFORM',
-    'AWS_LAMBDA_FUNCTION_NAME'
-  ];
-
-  const isHosted = hostingServices.some(service => process.env[service]);
-
-  if (!isHosted) {
-    security.logSecurityEvent('HOSTING_SERVICE_BLOCKED', 'No recognized hosting service detected', 'CRITICAL');
-    console.log('🚫 BOT BLOCKED: This bot can only run on hosting services');
-    console.log('🚫 Detected local environment - bot will not start');
-    console.log('🚫 Deploy to Render, Heroku, or Vercel to use this bot');
-    process.exit(1);
-  }
-
-  // Check 3: Bot token validation and security
-  if (!process.env.BOT_TOKEN) {
-    security.logSecurityEvent('BOT_TOKEN_MISSING', 'BOT_TOKEN environment variable not set', 'CRITICAL');
-    console.log('🚫 BOT TOKEN BLOCKED: BOT_TOKEN environment variable not set');
-    console.log('🚫 This bot requires a valid bot token');
-    process.exit(1);
-  }
-
-  // Validate and secure the token
-  secureToken = security.validateAndSecureToken(process.env.BOT_TOKEN);
-  
-  // Validate server status
-  if (!security.validateServerStatus()) {
-    security.logSecurityEvent('SERVER_STATUS_INVALID', 'Server status validation failed', 'CRITICAL');
-    console.log('🚫 SERVER STATUS INVALID: Server status validation failed');
-    process.exit(1);
-  }
-
-  console.log('✅ Environment check passed - bot is running in production');
-  console.log('✅ Hosting service detected:', hostingServices.find(service => process.env[service]));
-  console.log('✅ Bot token validated and secured');
-  console.log('✅ Server status validated');
-  
-  security.logSecurityEvent('BOT_STARTUP_SUCCESS', 'Bot startup validation completed successfully');
-
-} catch (error) {
-  security.logSecurityEvent('BOT_STARTUP_FAILED', error.message, 'CRITICAL');
-  console.log('🚫 BOT STARTUP FAILED:', error.message);
-  console.log('🚫 Please check your configuration and try again');
+// Basic environment checks before security initialization
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
+  console.log('🚫 BOT BLOCKED: This bot can only run in production environment');
+  console.log('🚫 Local running is completely disabled for security');
+  console.log('🚫 Deploy to Render or another hosting service to use this bot');
   process.exit(1);
 }
+
+// Check hosting service detection
+const hostingServices = [
+  'RENDER_EXTERNAL_URL',
+  'HEROKU_APP_NAME', 
+  'RAILWAY_STATIC_URL',
+  'VERCEL_URL',
+  'NETLIFY_URL',
+  'FLY_APP_NAME',
+  'DIGITALOCEAN_APP_PLATFORM',
+  'AWS_LAMBDA_FUNCTION_NAME'
+];
+
+const isHosted = hostingServices.some(service => process.env[service]);
+
+if (!isHosted) {
+  console.log('🚫 BOT BLOCKED: This bot can only run on hosting services');
+  console.log('🚫 Detected local environment - bot will not start');
+  console.log('🚫 Deploy to Render, Heroku, or Vercel to use this bot');
+  process.exit(1);
+}
+
+// Check bot token presence
+if (!process.env.BOT_TOKEN) {
+  console.log('🚫 BOT TOKEN BLOCKED: BOT_TOKEN environment variable not set');
+  console.log('🚫 This bot requires a valid bot token');
+  process.exit(1);
+}
+
+console.log('✅ Environment check passed - bot is running in production');
+console.log('✅ Hosting service detected:', hostingServices.find(service => process.env[service]));
+console.log('✅ Bot token environment variable found');
 
 // Initialize bot with secure token
 const bot = new TelegramBot(process.env.BOT_TOKEN, { 
@@ -98,6 +71,30 @@ const userSessions = new Map();
 // Initialize security and analytics
 const security = new SecurityManager();
 const analytics = new Analytics(botConfig);
+
+// Security validation after initialization
+try {
+  // Validate and secure the token
+  const secureToken = security.validateAndSecureToken(process.env.BOT_TOKEN);
+  
+  // Validate server status
+  if (!security.validateServerStatus()) {
+    security.logSecurityEvent('SERVER_STATUS_INVALID', 'Server status validation failed', 'CRITICAL');
+    console.log('🚫 SERVER STATUS INVALID: Server status validation failed');
+    process.exit(1);
+  }
+
+  console.log('✅ Bot token validated and secured');
+  console.log('✅ Server status validated');
+  
+  security.logSecurityEvent('BOT_STARTUP_SUCCESS', 'Bot startup validation completed successfully');
+
+} catch (error) {
+  security.logSecurityEvent('BOT_STARTUP_FAILED', error.message, 'CRITICAL');
+  console.log('🚫 BOT STARTUP FAILED:', error.message);
+  console.log('🚫 Please check your configuration and try again');
+  process.exit(1);
+}
 
 // Load automatic file mapping
 let fileMapping = {};
