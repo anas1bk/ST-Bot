@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Universities configuration (Tronc commun)
-const universities = ['batna2', 'setif', 'usthb', 'constantine1'];
+const universities = ['batna2', 'setif', 'usthb', 'constantine1', 'enpa', 'enpo', 'enpc', 'enserdd'];
 
 // Specializations configuration
 const specializations = ['cese'];
