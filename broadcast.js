@@ -183,7 +183,8 @@ class BroadcastSystem {
       targetType = 'all', // 'all', 'subscribers', 'active'
       includeButtons = false,
       buttons = [],
-      priority = 'normal' // 'low', 'normal', 'high', 'urgent'
+      priority = 'normal', // 'low', 'normal', 'high', 'urgent'
+      media = null // { type: 'photo'|'video'|'audio'|'document', file_id: string, caption: string }
     } = options;
 
     // Security validation
@@ -202,6 +203,7 @@ class BroadcastSystem {
     const broadcast = {
       id: broadcastId,
       message: message,
+      media: media,
       adminId: adminId,
       targetType: targetType,
       priority: priority,
@@ -245,7 +247,7 @@ class BroadcastSystem {
     this.saveData();
 
     // Send messages with rate limiting
-    const results = await this.sendMessagesToUsers(targetUsers, message, buttons, broadcastId);
+    const results = await this.sendMessagesToUsers(targetUsers, message, buttons, broadcastId, media);
 
     // Update broadcast with results
     broadcast.status = 'completed';
@@ -275,7 +277,7 @@ class BroadcastSystem {
   }
 
   // Send messages to users with rate limiting
-  async sendMessagesToUsers(userIds, message, buttons, broadcastId) {
+  async sendMessagesToUsers(userIds, message, buttons, broadcastId, media = null) {
     let sent = 0;
     let failed = 0;
     let blocked = 0;
@@ -301,8 +303,37 @@ class BroadcastSystem {
           continue;
         }
 
-        // Send message
-        await this.bot.sendMessage(userId, message, messageOptions);
+        // Send message with or without media
+        if (media) {
+          // Send media with caption
+          const caption = message || media.caption || '';
+          const mediaOptions = { ...messageOptions };
+          if (caption) {
+            mediaOptions.caption = caption;
+          }
+          
+          switch (media.type) {
+            case 'photo':
+              await this.bot.sendPhoto(userId, media.file_id, mediaOptions);
+              break;
+            case 'video':
+              await this.bot.sendVideo(userId, media.file_id, mediaOptions);
+              break;
+            case 'audio':
+              await this.bot.sendAudio(userId, media.file_id, mediaOptions);
+              break;
+            case 'document':
+              await this.bot.sendDocument(userId, media.file_id, mediaOptions);
+              break;
+            default:
+              await this.bot.sendMessage(userId, message, messageOptions);
+              break;
+          }
+        } else {
+          // Send text message only
+          await this.bot.sendMessage(userId, message, messageOptions);
+        }
+        
         sent++;
         this.rateLimit.messagesSent++;
 

@@ -69,6 +69,9 @@ bot.setWebHook('').then(() => {
 // User session storage
 const userSessions = new Map();
 
+// Admin media storage for broadcasts
+const adminMediaStorage = new Map();
+
 // Initialize security and analytics
 const security = new SecurityManager();
 const analytics = new Analytics(botConfig);
@@ -705,7 +708,7 @@ bot.onText(/\/about/, (msg) => {
    يمكن للمستخدمين الدخول إلى هذه القائمة للاختيار من بين العديد من الخيارات، مثل الوصول إلى معلومات حول المساقات الدراسية والامتحانات والكتب، وحتى كيفية التواصل مع المدرسين والمزيد.
 
 
-   🔷️ إرسال ملفات للمشاركة (/send) 📤 : 
+   🔷️ إرسال ملفات وصور وفيديوهات للمشاركة (/send) 📤 : 
 
    بإمكان المستخدمين إرسال ملفات للمشاركة مع الطلاب الآخرين في قناة خاصة.
 
@@ -736,7 +739,7 @@ bot.onText(/\/send/, (msg) => {
     fileName: null
   });
   
-  bot.sendMessage(chatId, 'Please insert the files:');
+  bot.sendMessage(chatId, '📤 Please send the file, photo, video, audio, or voice message you want to share:');
 });
 
 // Command handler for /feedback
@@ -756,7 +759,7 @@ bot.onText(/\/feedback/, (msg) => {
   bot.sendMessage(chatId, '📢 Please share your feedback, suggestions, or report any issues:\n\n(Your feedback will be sent to the bot owner)');
 });
 
-// Handle file messages
+// Handle file messages (documents)
 bot.on('document', async (msg) => {
   const chatId = msg.chat.id;
   const userSession = userSessions.get(chatId);
@@ -764,6 +767,7 @@ bot.on('document', async (msg) => {
   if (userSession && userSession.currentView === 'sending_file') {
     // Store file data
     userSession.fileData = {
+      type: 'document',
       file_id: msg.document.file_id,
       file_name: msg.document.file_name,
       file_size: msg.document.file_size,
@@ -772,6 +776,152 @@ bot.on('document', async (msg) => {
     userSessions.set(chatId, userSession);
     
     bot.sendMessage(chatId, 'Please enter the name of the file:');
+  }
+});
+
+// Handle photo messages
+bot.on('photo', async (msg) => {
+  const chatId = msg.chat.id;
+  const userSession = userSessions.get(chatId);
+  
+  if (userSession && userSession.currentView === 'sending_file') {
+    // Get the largest photo size
+    const photo = msg.photo[msg.photo.length - 1];
+    
+    // Store photo data
+    userSession.fileData = {
+      type: 'photo',
+      file_id: photo.file_id,
+      file_name: 'photo.jpg',
+      file_size: photo.file_size,
+      mime_type: 'image/jpeg',
+      caption: msg.caption || ''
+    };
+    userSessions.set(chatId, userSession);
+    
+    bot.sendMessage(chatId, 'Please enter a name for this photo:');
+  }
+});
+
+// Handle video messages
+bot.on('video', async (msg) => {
+  const chatId = msg.chat.id;
+  const userSession = userSessions.get(chatId);
+  
+  if (userSession && userSession.currentView === 'sending_file') {
+    // Store video data
+    userSession.fileData = {
+      type: 'video',
+      file_id: msg.video.file_id,
+      file_name: msg.video.file_name || 'video.mp4',
+      file_size: msg.video.file_size,
+      mime_type: msg.video.mime_type,
+      caption: msg.caption || ''
+    };
+    userSessions.set(chatId, userSession);
+    
+    bot.sendMessage(chatId, 'Please enter a name for this video:');
+  }
+});
+
+// Handle audio messages
+bot.on('audio', async (msg) => {
+  const chatId = msg.chat.id;
+  const userSession = userSessions.get(chatId);
+  
+  if (userSession && userSession.currentView === 'sending_file') {
+    // Store audio data
+    userSession.fileData = {
+      type: 'audio',
+      file_id: msg.audio.file_id,
+      file_name: msg.audio.file_name || 'audio.mp3',
+      file_size: msg.audio.file_size,
+      mime_type: msg.audio.mime_type,
+      caption: msg.caption || ''
+    };
+    userSessions.set(chatId, userSession);
+    
+    bot.sendMessage(chatId, 'Please enter a name for this audio:');
+  }
+});
+
+// Handle voice messages
+bot.on('voice', async (msg) => {
+  const chatId = msg.chat.id;
+  const userSession = userSessions.get(chatId);
+  
+  if (userSession && userSession.currentView === 'sending_file') {
+    // Store voice data
+    userSession.fileData = {
+      type: 'voice',
+      file_id: msg.voice.file_id,
+      file_name: 'voice.ogg',
+      file_size: msg.voice.file_size,
+      mime_type: 'audio/ogg',
+      duration: msg.voice.duration,
+      caption: msg.caption || ''
+    };
+    userSessions.set(chatId, userSession);
+    
+    bot.sendMessage(chatId, 'Please enter a name for this voice message:');
+  }
+});
+
+// Handle admin media for broadcasts
+bot.on('photo', async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin and store media for broadcast
+  if (userId.toString() === process.env.BOT_OWNER_ID) {
+    const photo = msg.photo[msg.photo.length - 1];
+    adminMediaStorage.set(chatId, {
+      type: 'photo',
+      file_id: photo.file_id,
+      caption: msg.caption || ''
+    });
+  }
+});
+
+bot.on('video', async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin and store media for broadcast
+  if (userId.toString() === process.env.BOT_OWNER_ID) {
+    adminMediaStorage.set(chatId, {
+      type: 'video',
+      file_id: msg.video.file_id,
+      caption: msg.caption || ''
+    });
+  }
+});
+
+bot.on('audio', async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin and store media for broadcast
+  if (userId.toString() === process.env.BOT_OWNER_ID) {
+    adminMediaStorage.set(chatId, {
+      type: 'audio',
+      file_id: msg.audio.file_id,
+      caption: msg.caption || ''
+    });
+  }
+});
+
+bot.on('document', async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  
+  // Check if user is admin and store media for broadcast
+  if (userId.toString() === process.env.BOT_OWNER_ID) {
+    adminMediaStorage.set(chatId, {
+      type: 'document',
+      file_id: msg.document.file_id,
+      caption: msg.caption || ''
+    });
   }
 });
 
@@ -861,9 +1011,37 @@ bot.on('text', async (msg) => {
       const username = msg.from.username ? `@${msg.from.username}` : 'No username';
       const userId = msg.from.id;
       
-      await bot.sendDocument(fileSharingChannel, userSession.fileData.file_id, {
-        caption: `📢 File from ${fullName} (${username})  Id : (${userId})\nFile: ${fileName}`
-      });
+      const caption = `📢 File from ${fullName} (${username})  Id : (${userId})\nFile: ${fileName}`;
+      
+      // Send different media types based on file type
+      switch (userSession.fileData.type) {
+        case 'photo':
+          await bot.sendPhoto(fileSharingChannel, userSession.fileData.file_id, {
+            caption: caption
+          });
+          break;
+        case 'video':
+          await bot.sendVideo(fileSharingChannel, userSession.fileData.file_id, {
+            caption: caption
+          });
+          break;
+        case 'audio':
+          await bot.sendAudio(fileSharingChannel, userSession.fileData.file_id, {
+            caption: caption
+          });
+          break;
+        case 'voice':
+          await bot.sendVoice(fileSharingChannel, userSession.fileData.file_id, {
+            caption: caption
+          });
+          break;
+        case 'document':
+        default:
+          await bot.sendDocument(fileSharingChannel, userSession.fileData.file_id, {
+            caption: caption
+          });
+          break;
+      }
       
       // Reset user session
       userSessions.set(chatId, {
@@ -1674,6 +1852,12 @@ bot.onText(/\/broadcast/, async (msg) => {
 • /subscribe - Subscribe to broadcasts
 • /unsubscribe - Unsubscribe from broadcasts
 
+**Media Support:**
+• Send photos, videos, audio, or documents with your broadcast
+• First send the media, then use the broadcast command
+• The media will be included with your text message
+• Example: Send a photo, then type "/broadcast Check out this new resource!"
+
 **Examples:**
 • /broadcast 🎉 New files added! Check out the latest resources.
 • /broadcast_subscribers 📚 Important update for subscribers only
@@ -1689,11 +1873,20 @@ bot.onText(/\/broadcast/, async (msg) => {
   }
   
   try {
+    // Check if there's stored media for this admin
+    const storedMedia = adminMediaStorage.get(chatId);
+    
     const result = await broadcast.sendBroadcast(message, {
       adminId: userId,
       targetType: 'all',
-      priority: 'normal'
+      priority: 'normal',
+      media: storedMedia
     });
+    
+    // Clear stored media after broadcast
+    if (storedMedia) {
+      adminMediaStorage.delete(chatId);
+    }
     
     if (result.success) {
       const response = `✅ **Broadcast sent successfully!**
@@ -1737,11 +1930,20 @@ bot.onText(/\/broadcast_subscribers/, async (msg) => {
   }
   
   try {
+    // Check if there's stored media for this admin
+    const storedMedia = adminMediaStorage.get(chatId);
+    
     const result = await broadcast.sendBroadcast(message, {
       adminId: userId,
       targetType: 'subscribers',
-      priority: 'normal'
+      priority: 'normal',
+      media: storedMedia
     });
+    
+    // Clear stored media after broadcast
+    if (storedMedia) {
+      adminMediaStorage.delete(chatId);
+    }
     
     if (result.success) {
       const response = `✅ **Broadcast to subscribers sent successfully!**
@@ -1785,11 +1987,20 @@ bot.onText(/\/broadcast_active/, async (msg) => {
   }
   
   try {
+    // Check if there's stored media for this admin
+    const storedMedia = adminMediaStorage.get(chatId);
+    
     const result = await broadcast.sendBroadcast(message, {
       adminId: userId,
       targetType: 'active',
-      priority: 'normal'
+      priority: 'normal',
+      media: storedMedia
     });
+    
+    // Clear stored media after broadcast
+    if (storedMedia) {
+      adminMediaStorage.delete(chatId);
+    }
     
     if (result.success) {
       const response = `✅ **Broadcast to active users sent successfully!**
