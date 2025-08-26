@@ -8,8 +8,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// Universities configuration (Tronc commun)
-const universities = ['batna2', 'setif', 'usthb', 'constantine1', 'enpa', 'enpo', 'enpc', 'enserdd'];
+// Universities configuration (Tronc commun) - New colleges first, then old universities
+const universities = ['enpa', 'enpo', 'enpc', 'enserdd', 'batna2', 'setif', 'usthb', 'constantine1'];
 
 // Specializations configuration
 const specializations = ['cese'];

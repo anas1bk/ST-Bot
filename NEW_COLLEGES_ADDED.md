@@ -33,7 +33,7 @@ universities/
 
 ## 📚 Navigation Flow
 
-1. **User selects college** (ENPA, ENPO, ENPC, or ENSERDD)
+1. **User selects college** (ENPA, ENPO, ENPC, or ENSERDD) - **These appear at the top of the list**
 2. **Two options appear:**
    - **📚 Tronc commun** - Shows semesters 1-4 with common modules
    - **⚡ Spécialités** - Shows "Under development" message
@@ -112,6 +112,7 @@ universities/
 
 4. **Test the navigation:**
    - Send `/ing` to the bot
+   - The new colleges (ENPA, ENPO, ENPC, ENSERDD) will appear at the top
    - Select one of the new colleges
    - Navigate through Tronc commun
 

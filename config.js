@@ -3,8 +3,268 @@
 
 // Main navigation structure
 const navigationStructure = {
-  // Universities with their paths
+  // Universities with their paths (New colleges first, then old universities)
   'universities': {
+    'enpa': {
+      name: 'ENPA',
+      displayName: '🏫 ENPA',
+      hasSpecializations: false,
+      troncCommun: {
+        name: 'Tronc commun',
+        displayName: '📚 Tronc commun',
+        description: 'Cours communs des semestres 1 à 4',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
+      }
+    },
+    'enpo': {
+      name: 'ENPO',
+      displayName: '🏫 ENPO',
+      hasSpecializations: false,
+      troncCommun: {
+        name: 'Tronc commun',
+        displayName: '📚 Tronc commun',
+        description: 'Cours communs des semestres 1 à 4',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
+      }
+    },
+    'enpc': {
+      name: 'ENPC',
+      displayName: '🏫 ENPC',
+      hasSpecializations: false,
+      troncCommun: {
+        name: 'Tronc commun',
+        displayName: '📚 Tronc commun',
+        description: 'Cours communs des semestres 1 à 4',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
+      }
+    },
+    'enserdd': {
+      name: 'ENSERDD',
+      displayName: '🏫 ENSERDD',
+      hasSpecializations: false,
+      troncCommun: {
+        name: 'Tronc commun',
+        displayName: '📚 Tronc commun',
+        description: 'Cours communs des semestres 1 à 4',
+        semesters: {
+          'semester_1': {
+            name: 'Semester 1',
+            modules: [
+              'Analyse 1',
+              'Algèbre 1',
+              'Structure de la matière',
+              'Physique 1',
+              'Probabilités et statistiques',
+              'Informatique 1',
+              'Éthique et déontologie',
+              'Anglais'
+            ]
+          },
+          'semester_2': {
+            name: 'Semester 2',
+            modules: [
+              'Analyse 2',
+              'Algèbre 2',
+              'Physique 2',
+              'Thermodynamique',
+              'Dessin technique',
+              'Informatique 2',
+              'Anglais',
+              'Les métiers de l\'ingénieur'
+            ]
+          },
+          'semester_3': {
+            name: 'Semester 3',
+            modules: [
+              'Analyse 3',
+              'Analyse numérique 1',
+              'Ondes et vibrations',
+              'Mécanique des fluides',
+              'Mécanique rationnelle',
+              'Informatique 3',
+              'DAO',
+              'Anglais technique'
+            ]
+          },
+          'semester_4': {
+            name: 'Semester 4',
+            modules: [
+              'Analyse numérique 2',
+              'Résistance des matériaux',
+              'Electronique fondamentale',
+              'Electricité fondamentale',
+              'Théorie du signal',
+              'Mesure et métrologie',
+              'Informatique 4',
+              'Conception Assistée par Ordinateur',
+              'Techniques d\'expression, d\'information et de communication'
+            ]
+          }
+        }
+      }
+    },
     'batna2': {
       name: 'Université Batna 2',
       displayName: '🏫 Université Batna 2',
@@ -238,266 +498,6 @@ const navigationStructure = {
     'constantine1': {
       name: 'Université Constantine 1',
       displayName: '🏫 Université Constantine 1',
-      hasSpecializations: false,
-      troncCommun: {
-        name: 'Tronc commun',
-        displayName: '📚 Tronc commun',
-        description: 'Cours communs des semestres 1 à 4',
-        semesters: {
-          'semester_1': {
-            name: 'Semester 1',
-            modules: [
-              'Analyse 1',
-              'Algèbre 1',
-              'Structure de la matière',
-              'Physique 1',
-              'Probabilités et statistiques',
-              'Informatique 1',
-              'Éthique et déontologie',
-              'Anglais'
-            ]
-          },
-          'semester_2': {
-            name: 'Semester 2',
-            modules: [
-              'Analyse 2',
-              'Algèbre 2',
-              'Physique 2',
-              'Thermodynamique',
-              'Dessin technique',
-              'Informatique 2',
-              'Anglais',
-              'Les métiers de l\'ingénieur'
-            ]
-          },
-          'semester_3': {
-            name: 'Semester 3',
-            modules: [
-              'Analyse 3',
-              'Analyse numérique 1',
-              'Ondes et vibrations',
-              'Mécanique des fluides',
-              'Mécanique rationnelle',
-              'Informatique 3',
-              'DAO',
-              'Anglais technique'
-            ]
-          },
-          'semester_4': {
-            name: 'Semester 4',
-            modules: [
-              'Analyse numérique 2',
-              'Résistance des matériaux',
-              'Electronique fondamentale',
-              'Electricité fondamentale',
-              'Théorie du signal',
-              'Mesure et métrologie',
-              'Informatique 4',
-              'Conception Assistée par Ordinateur',
-              'Techniques d\'expression, d\'information et de communication'
-            ]
-          }
-        }
-      }
-    },
-    'enpa': {
-      name: 'ENPA',
-      displayName: '🏫 ENPA',
-      hasSpecializations: false,
-      troncCommun: {
-        name: 'Tronc commun',
-        displayName: '📚 Tronc commun',
-        description: 'Cours communs des semestres 1 à 4',
-        semesters: {
-          'semester_1': {
-            name: 'Semester 1',
-            modules: [
-              'Analyse 1',
-              'Algèbre 1',
-              'Structure de la matière',
-              'Physique 1',
-              'Probabilités et statistiques',
-              'Informatique 1',
-              'Éthique et déontologie',
-              'Anglais'
-            ]
-          },
-          'semester_2': {
-            name: 'Semester 2',
-            modules: [
-              'Analyse 2',
-              'Algèbre 2',
-              'Physique 2',
-              'Thermodynamique',
-              'Dessin technique',
-              'Informatique 2',
-              'Anglais',
-              'Les métiers de l\'ingénieur'
-            ]
-          },
-          'semester_3': {
-            name: 'Semester 3',
-            modules: [
-              'Analyse 3',
-              'Analyse numérique 1',
-              'Ondes et vibrations',
-              'Mécanique des fluides',
-              'Mécanique rationnelle',
-              'Informatique 3',
-              'DAO',
-              'Anglais technique'
-            ]
-          },
-          'semester_4': {
-            name: 'Semester 4',
-            modules: [
-              'Analyse numérique 2',
-              'Résistance des matériaux',
-              'Electronique fondamentale',
-              'Electricité fondamentale',
-              'Théorie du signal',
-              'Mesure et métrologie',
-              'Informatique 4',
-              'Conception Assistée par Ordinateur',
-              'Techniques d\'expression, d\'information et de communication'
-            ]
-          }
-        }
-      }
-    },
-    'enpo': {
-      name: 'ENPO',
-      displayName: '🏫 ENPO',
-      hasSpecializations: false,
-      troncCommun: {
-        name: 'Tronc commun',
-        displayName: '📚 Tronc commun',
-        description: 'Cours communs des semestres 1 à 4',
-        semesters: {
-          'semester_1': {
-            name: 'Semester 1',
-            modules: [
-              'Analyse 1',
-              'Algèbre 1',
-              'Structure de la matière',
-              'Physique 1',
-              'Probabilités et statistiques',
-              'Informatique 1',
-              'Éthique et déontologie',
-              'Anglais'
-            ]
-          },
-          'semester_2': {
-            name: 'Semester 2',
-            modules: [
-              'Analyse 2',
-              'Algèbre 2',
-              'Physique 2',
-              'Thermodynamique',
-              'Dessin technique',
-              'Informatique 2',
-              'Anglais',
-              'Les métiers de l\'ingénieur'
-            ]
-          },
-          'semester_3': {
-            name: 'Semester 3',
-            modules: [
-              'Analyse 3',
-              'Analyse numérique 1',
-              'Ondes et vibrations',
-              'Mécanique des fluides',
-              'Mécanique rationnelle',
-              'Informatique 3',
-              'DAO',
-              'Anglais technique'
-            ]
-          },
-          'semester_4': {
-            name: 'Semester 4',
-            modules: [
-              'Analyse numérique 2',
-              'Résistance des matériaux',
-              'Electronique fondamentale',
-              'Electricité fondamentale',
-              'Théorie du signal',
-              'Mesure et métrologie',
-              'Informatique 4',
-              'Conception Assistée par Ordinateur',
-              'Techniques d\'expression, d\'information et de communication'
-            ]
-          }
-        }
-      }
-    },
-    'enpc': {
-      name: 'ENPC',
-      displayName: '🏫 ENPC',
-      hasSpecializations: false,
-      troncCommun: {
-        name: 'Tronc commun',
-        displayName: '📚 Tronc commun',
-        description: 'Cours communs des semestres 1 à 4',
-        semesters: {
-          'semester_1': {
-            name: 'Semester 1',
-            modules: [
-              'Analyse 1',
-              'Algèbre 1',
-              'Structure de la matière',
-              'Physique 1',
-              'Probabilités et statistiques',
-              'Informatique 1',
-              'Éthique et déontologie',
-              'Anglais'
-            ]
-          },
-          'semester_2': {
-            name: 'Semester 2',
-            modules: [
-              'Analyse 2',
-              'Algèbre 2',
-              'Physique 2',
-              'Thermodynamique',
-              'Dessin technique',
-              'Informatique 2',
-              'Anglais',
-              'Les métiers de l\'ingénieur'
-            ]
-          },
-          'semester_3': {
-            name: 'Semester 3',
-            modules: [
-              'Analyse 3',
-              'Analyse numérique 1',
-              'Ondes et vibrations',
-              'Mécanique des fluides',
-              'Mécanique rationnelle',
-              'Informatique 3',
-              'DAO',
-              'Anglais technique'
-            ]
-          },
-          'semester_4': {
-            name: 'Semester 4',
-            modules: [
-              'Analyse numérique 2',
-              'Résistance des matériaux',
-              'Electronique fondamentale',
-              'Electricité fondamentale',
-              'Théorie du signal',
-              'Mesure et métrologie',
-              'Informatique 4',
-              'Conception Assistée par Ordinateur',
-              'Techniques d\'expression, d\'information et de communication'
-            ]
-          }
-        }
-      }
-    },
-    'enserdd': {
-      name: 'ENSERDD',
-      displayName: '🏫 ENSERDD',
       hasSpecializations: false,
       troncCommun: {
         name: 'Tronc commun',
