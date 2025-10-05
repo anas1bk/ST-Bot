@@ -9,7 +9,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Universities configuration (Tronc commun) - New colleges first, then old universities
-const universities = ['enpa', 'enpo', 'enpc', 'enserdd', 'batna2', 'setif', 'usthb', 'constantine1'];
+// Note: Hidden universities remain on disk but are skipped in mapping to avoid UI exposure
+const universities = ['batna2'];
 
 // Specializations configuration
 const specializations = ['cese'];

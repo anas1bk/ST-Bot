@@ -146,10 +146,12 @@ function createInlineKeyboard(buttons, backButton = null) {
 
 // Helper function to get university selection keyboard
 function getUniversityKeyboard() {
-  const buttons = Object.keys(navigationStructure.universities).map(universityKey => ({
-    text: navigationStructure.universities[universityKey].displayName,
-    callback_data: `university_${universityKey}`
-  }));
+  const buttons = Object.keys(navigationStructure.universities)
+    .filter(universityKey => !navigationStructure.universities[universityKey].hidden)
+    .map(universityKey => ({
+      text: navigationStructure.universities[universityKey].displayName,
+      callback_data: `university_${universityKey}`
+    }));
   
   return createInlineKeyboard(buttons);
 }
@@ -157,12 +159,15 @@ function getUniversityKeyboard() {
 // Helper function to get university paths keyboard
 function getUniversityPathsKeyboard(universityKey) {
   const university = navigationStructure.universities[universityKey];
-  const buttons = [
-    {
+  const buttons = [];
+  
+  // Only show Tronc commun if not hidden
+  if (!university.troncCommun.hidden) {
+    buttons.push({
       text: university.troncCommun.displayName,
       callback_data: `tronc_commun_${universityKey}`
-    }
-  ];
+    });
+  }
   
   // Add specializations button only if university has specializations
   if (university.hasSpecializations) {

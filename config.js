@@ -6,6 +6,7 @@ const navigationStructure = {
   // Universities with their paths (New colleges first, then old universities)
   'universities': {
     'enpa': {
+      hidden: true,
       name: 'ENPA',
       displayName: '🏫 ENPA',
       hasSpecializations: false,
@@ -71,6 +72,7 @@ const navigationStructure = {
       }
     },
     'enpo': {
+      hidden: true,
       name: 'ENPO',
       displayName: '🏫 ENPO',
       hasSpecializations: false,
@@ -136,6 +138,7 @@ const navigationStructure = {
       }
     },
     'enpc': {
+      hidden: true,
       name: 'ENPC',
       displayName: '🏫 ENPC',
       hasSpecializations: false,
@@ -201,6 +204,7 @@ const navigationStructure = {
       }
     },
     'enserdd': {
+      hidden: true,
       name: 'ENSERDD',
       displayName: '🏫 ENSERDD',
       hasSpecializations: false,
@@ -272,6 +276,7 @@ const navigationStructure = {
       troncCommun: {
         name: 'Tronc commun',
         displayName: '📚 Tronc commun',
+        hidden: true,
         description: 'Cours communs des semestres 1 à 4',
         semesters: {
           'semester_1': {
@@ -366,6 +371,7 @@ const navigationStructure = {
       }
     },
     'setif': {
+      hidden: true,
       name: 'Université Setif',
       displayName: '🏫 Université Setif',
       hasSpecializations: false,
@@ -431,6 +437,7 @@ const navigationStructure = {
       }
     },
     'usthb': {
+      hidden: true,
       name: 'USTHB',
       displayName: '🏫 USTHB',
       hasSpecializations: false,
@@ -496,6 +503,7 @@ const navigationStructure = {
       }
     },
     'constantine1': {
+      hidden: true,
       name: 'Université Constantine 1',
       displayName: '🏫 Université Constantine 1',
       hasSpecializations: false,
